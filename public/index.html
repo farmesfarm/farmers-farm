@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farmers Farm – 7 TEA AM | Premium Herbal Morning Tea</title>
+<meta name="description" content="Farmers Farm presents 7 TEA AM – a premium herbal morning blend crafted from 7 hand-picked natural ingredients. Farm to cup, 100% natural tea. Order now for pan-India delivery.">
+<meta name="keywords" content="Farmers Farm, 7 TEA AM, herbal tea, morning tea, green tea, natural tea, Indian tea, organic tea">
+<meta name="author" content="Farmers Farm Pvt. Ltd.">
+<meta property="og:title" content="Farmers Farm – 7 TEA AM">
+<meta property="og:description" content="A morning blend crafted from the finest hand-picked leaves and ancient herbs. 100% Natural.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍵</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- PRELOADER -->
+<div class="preloader" id="preloader">
+  <div class="preloader-logo">FARMERS FARM</div>
+  <div class="preloader-sub">Brewing Excellence</div>
+  <div class="preloader-bar"><div class="preloader-bar-inner"></div></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <span>FARMERS FARM</span>
+    <span>Est. 2020 · Pure Harvest</span>
+  </div>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#ingredients">Ingredients</a></li>
+    <li><a href="#shop">Shop</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+    <li><a href="#location">Find Us</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <!-- User Auth Icon -->
+    <div class="nav-user" id="navUserBtn" style="position:relative;" title="Login / Sign Up">👤
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-name" id="dropdownName"></div>
+        <div class="user-dropdown-email" id="dropdownEmail"></div>
+        <button class="user-dropdown-item" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'});document.getElementById('userDropdown').classList.remove('show');">🛒 Shop Now</button>
+        <button class="user-dropdown-item" onclick="document.getElementById('feedback').scrollIntoView({behavior:'smooth'});document.getElementById('userDropdown').classList.remove('show');">💬 Leave Feedback</button>
+        <button class="user-dropdown-item danger" id="logoutBtn">🚪 Logout</button>
+      </div>
+    </div>
+    <div class="nav-cart" id="cartIcon" title="View Cart">🛒<span class="cart-count" id="cartCount">0</span></div>
+    <button class="nav-cta" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Order Now</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="leaf-bg" id="leafBg"></div>
+  <div class="hero-inner">
+    <span class="hero-eyebrow">Farm to Cup · 100% Natural</span>
+    <h1 class="hero-title">Farmers<br><em>Farm</em></h1>
+    <div class="hero-sub">Presents 7 TEA AM</div>
+    <p class="hero-desc">A morning blend crafted from the finest hand-picked leaves and ancient herbs — brewed for those who begin the day with intention.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">🛒 Shop Now</button>
+      <button class="btn-outline" onclick="document.getElementById('ingredients').scrollIntoView({behavior:'smooth'})">🌿 Our Ingredients</button>
+    </div>
+  </div>
+  <div class="hero-scroll">Scroll</div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" style="background: var(--cream);">
+  <div class="about-grid">
+    <div class="about-visual reveal-left">
+      <div class="about-visual-inner">
+        <span class="big-leaf">🍵</span>
+        <p>"Wake up to nature's finest."</p>
+      </div>
+    </div>
+    <div class="about-text reveal-right">
+      <div class="section-label">Our Story</div>
+      <h2 class="section-title">From Field to<br>Your Morning Cup</h2>
+      <div class="section-line"></div>
+      <p>Farmers Farm was born from a simple belief: the best cup of tea starts long before the kettle boils. Our farmers tend to every plant with care, harvesting only at peak potency to bring the truest flavours to your home.</p>
+      <p>7 TEA AM is our signature morning blend — a precise union of seven carefully selected ingredients that energize, soothe, and nourish from the very first sip of the day.</p>
+      <div class="about-stats">
+        <div class="stat"><div class="stat-num" data-count="7">0</div><div class="stat-lbl">Ingredients</div></div>
+        <div class="stat"><div class="stat-num" data-count="100" data-suffix="%">0</div><div class="stat-lbl">Natural</div></div>
+        <div class="stat"><div class="stat-num" data-count="5" data-suffix="★">0</div><div class="stat-lbl">Rating</div></div>
+        <div class="stat"><div class="stat-num" data-count="50000" data-suffix="+">0</div><div class="stat-lbl">Customers</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INGREDIENTS -->
+<section class="ingredients-section" id="ingredients">
+  <div style="max-width:1100px; margin:0 auto;">
+    <div class="section-label reveal">What's Inside</div>
+    <h2 class="section-title reveal">7 Ingredients.<br>One Perfect Morning.</h2>
+    <div class="section-line reveal"></div>
+    <div class="ingredients-grid">
+      <div class="ing-card reveal"><span class="ing-icon">🍃</span><div class="ing-name">Assam Green Tea</div><div class="ing-desc">Rich, malty base leaves sourced from the lush valleys of Assam — the backbone of every sip of 7 TEA AM.</div></div>
+      <div class="ing-card reveal"><span class="ing-icon">🫚</span><div class="ing-name">Pure Ginger Root</div><div class="ing-desc">Freshly dried ginger for a warming kick that awakens digestion and boosts morning metabolism naturally.</div></div>
+      <div class="ing-card reveal"><span class="ing-icon">🌿</span><div class="ing-name">Tulsi (Holy Basil)</div><div class="ing-desc">India's sacred adaptogen — calms the mind while sharpening focus, setting the perfect tone for your day.</div></div>
+      <div class="ing-card reveal"><span class="ing-icon">🌼</span><div class="ing-name">Chamomile Flowers</div><div class="ing-desc">Sun-dried chamomile blossoms add a delicate floral sweetness and gentle anti-inflammatory properties.</div></div>
+      <div class="ing-card reveal"><span class="ing-icon">🍋</span><div class="ing-name">Lemon Peel Zest</div><div class="ing-desc">Bright citrus notes from organic lemon peel that refresh the palate and add a hit of natural Vitamin C.</div></div>
+      <div class="ing-card reveal"><span class="ing-icon">🌰</span><div class="ing-name">Cardamom Pods</div><div class="ing-desc">Aromatic green cardamom lends a sweet spice that elevates the blend — the signature scent of 7 TEA AM.</div></div>
+      <div class="ing-card reveal"><span class="ing-icon">🖤</span><div class="ing-name">Black Pepper Extract</div><div class="ing-desc">A trace of black pepper amplifies the absorption of every other ingredient — the invisible seventh secret.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOP -->
+<section id="shop" style="background: var(--cream);">
+  <div class="shop-intro reveal">
+    <div class="section-label">Our Packets</div>
+    <h2 class="section-title">Choose Your Size</h2>
+    <div class="section-line"></div>
+    <p>Available in convenient sizes — from a taster sachet to a full-season supply. Every packet is sealed for freshness and biodegradable.</p>
+  </div>
+  <div class="packets-grid" id="packetsGrid"></div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section" id="testimonials">
+  <div style="max-width:1100px; margin:0 auto;">
+    <div class="section-label reveal" style="text-align:center;">What People Say</div>
+    <h2 class="section-title reveal" style="text-align:center;">Loved by Thousands</h2>
+    <div class="section-line reveal" style="margin:0 auto 32px;"></div>
+    <div class="testimonials-track" id="testimonialTrack">
+      <div class="testimonial-card"><div class="testimonial-stars">★★★★★</div><div class="testimonial-text">"7 TEA AM has completely replaced my morning coffee. The ginger-tulsi kick is incredible, and I love knowing every ingredient is natural. Absolute game changer!"</div><div class="testimonial-author"><div class="testimonial-avatar">R</div><div><div class="testimonial-name">Rahul Sharma</div><div class="testimonial-location">Lucknow, UP</div></div></div></div>
+      <div class="testimonial-card"><div class="testimonial-stars">★★★★★</div><div class="testimonial-text">"I bought the 250g Classic Pack as a gift for my mom, and now the whole family is hooked. The chamomile makes it so smooth — we order the 1kg pack every month now."</div><div class="testimonial-author"><div class="testimonial-avatar">P</div><div><div class="testimonial-name">Priya Mehra</div><div class="testimonial-location">Delhi</div></div></div></div>
+      <div class="testimonial-card"><div class="testimonial-stars">★★★★★</div><div class="testimonial-text">"The packaging is beautiful, the aroma is heavenly, and the taste is unlike any tea I've tried. You can tell the ingredients are premium. Highly recommended!"</div><div class="testimonial-author"><div class="testimonial-avatar">A</div><div><div class="testimonial-name">Amit Patel</div><div class="testimonial-location">Mumbai, MH</div></div></div></div>
+      <div class="testimonial-card"><div class="testimonial-stars">★★★★★</div><div class="testimonial-text">"As a yoga instructor, I'm very picky about what I consume. 7 TEA AM aligns perfectly with my holistic lifestyle. The cardamom and lemon peel balance is perfection."</div><div class="testimonial-author"><div class="testimonial-avatar">S</div><div><div class="testimonial-name">Sneha Reddy</div><div class="testimonial-location">Bengaluru, KA</div></div></div></div>
+      <div class="testimonial-card"><div class="testimonial-stars">★★★★★</div><div class="testimonial-text">"Free shipping above ₹999 is a great deal. I ordered two Family Packs and they arrived in 3 days, perfectly sealed. The customer service was also excellent!"</div><div class="testimonial-author"><div class="testimonial-avatar">V</div><div><div class="testimonial-name">Vikram Singh</div><div class="testimonial-location">Jaipur, RJ</div></div></div></div>
+    </div>
+    <div class="testimonial-dots"><span class="testimonial-dot active"></span><span class="testimonial-dot"></span><span class="testimonial-dot"></span><span class="testimonial-dot"></span><span class="testimonial-dot"></span></div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="location-section" id="location">
+  <div class="location-inner">
+    <div class="reveal-left">
+      <div class="section-label">Find Us</div>
+      <h2 class="section-title">Where to Buy<br>7 TEA AM</h2>
+      <div class="section-line"></div>
+      <div class="location-list">
+        <div class="loc-item"><span class="loc-icon">🏠</span><div><div class="loc-name">Farmers Farm HQ & Store</div><div class="loc-addr">Plot 14, Green Valley Agro Park,<br>Hazratganj, Lucknow, UP – 226001</div></div></div>
+        <div class="loc-item"><span class="loc-icon">🏪</span><div><div class="loc-name">Delhi Retail Partner</div><div class="loc-addr">Shop 9, INA Market,<br>New Delhi – 110023</div></div></div>
+        <div class="loc-item"><span class="loc-icon">🏪</span><div><div class="loc-name">Mumbai Retail Partner</div><div class="loc-addr">Booth 42, Crawford Market,<br>Mumbai, MH – 400001</div></div></div>
+        <div class="loc-item"><span class="loc-icon">🏪</span><div><div class="loc-name">Bengaluru Retail Partner</div><div class="loc-addr">16, Russel Market Road,<br>Bengaluru, KA – 560001</div></div></div>
+        <div class="loc-item"><span class="loc-icon">🚚</span><div><div class="loc-name">Pan-India Home Delivery</div><div class="loc-addr">Order online — delivered in 3–5 business days<br>Free shipping on orders above ₹999</div></div></div>
+      </div>
+    </div>
+    <div class="map-placeholder reveal-right">
+      <span class="map-icon">📍</span><h3>Our Farm & HQ</h3>
+      <address>Farmers Farm Pvt. Ltd.<br>Plot 14, Green Valley Agro Park<br>Hazratganj, Lucknow<br>Uttar Pradesh – 226001<br>India</address>
+      <p style="margin-top:16px;">Open Mon–Sat · 9:00 AM – 6:00 PM</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contacts-section" id="contact">
+  <div class="contacts-inner">
+    <div style="margin-bottom: 48px;" class="reveal"><div class="section-label">Get in Touch</div><h2 class="section-title">All Ways to Reach Us</h2><div class="section-line"></div></div>
+    <div class="contacts-grid">
+      <div class="contact-card reveal"><span class="contact-icon">📞</span><div class="contact-type">Phone</div><div class="contact-detail"><a href="tel:+911800227TEA" class="contact-link">+91 1800-227-8327</a></div><div class="contact-sub">Mon–Sat · 9 AM – 6 PM IST<br>Toll-free helpline</div></div>
+      <div class="contact-card reveal"><span class="contact-icon">📱</span><div class="contact-type">WhatsApp</div><div class="contact-detail"><a href="https://wa.me/919876543210" class="contact-link">+91 98765 43210</a></div><div class="contact-sub">Send us a message anytime.<br>We reply within 2 hours.</div></div>
+      <div class="contact-card reveal"><span class="contact-icon">✉️</span><div class="contact-type">Email</div><div class="contact-detail"><a href="mailto:hello@farmersfarm.in" class="contact-link">hello@farmersfarm.in</a></div><div class="contact-sub">For orders, partnerships,<br>and general enquiries.</div></div>
+      <div class="contact-card reveal"><span class="contact-icon">🎙️</span><div class="contact-type">Voicemail Feedback</div><div class="contact-detail"><a href="tel:+911800007TEA" class="contact-link">+91 1800-007-8327</a></div><div class="contact-sub">Leave us your feedback by voice.<br>Available 24 × 7, toll-free.</div></div>
+      <div class="contact-card reveal"><span class="contact-icon">📸</span><div class="contact-type">Instagram</div><div class="contact-detail"><a href="#" class="contact-link">@farmersfarm_tea</a></div><div class="contact-sub">Follow our farm stories,<br>recipes & brewing tips.</div></div>
+      <div class="contact-card reveal"><span class="contact-icon">💬</span><div class="contact-type">Live Chat</div><div class="contact-detail" style="font-size:15px;">Available on website</div><div class="contact-sub">Chat with our tea expert<br>Mon–Fri · 10 AM – 5 PM IST</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEEDBACK -->
+<section class="feedback-section" id="feedback">
+  <div class="feedback-inner">
+    <div class="section-label reveal">Your Voice Matters</div>
+    <h2 class="section-title reveal">Leave Us Feedback</h2>
+    <div class="section-line reveal"></div>
+    <p class="reveal">Drop a voicemail anytime on our 24×7 toll-free line, or fill in the form below. Every piece of feedback helps us grow better — just like our tea plants.</p>
+    <button class="voicemail-btn reveal" onclick="showToast('🎙️ Dialing voicemail… +91 1800-007-8327')">🎙️ Leave a Voicemail — 1800-007-8327</button>
+    <div class="feedback-form reveal">
+      <div class="form-row">
+        <div class="form-field"><label>Your Name</label><input type="text" placeholder="Your full name" id="fname"></div>
+        <div class="form-field"><label>Phone / Email</label><input type="text" placeholder="+91 98xxx or email@mail.com" id="fcontact"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>City</label><input type="text" placeholder="Your city" id="fcity"></div>
+        <div class="form-field"><label>Packet Size Purchased</label><select id="fpacket"><option value="">Select size</option><option>40g Taster Pack</option><option>100g Starter Pack</option><option>250g Classic Pack</option><option>500g Family Pack</option><option>750g Estate Pack</option><option>1kg Harvest Pack</option></select></div>
+      </div>
+      <div class="form-field"><label>Your Feedback</label><textarea placeholder="Tell us about your 7 TEA AM experience..." id="fmsg"></textarea></div>
+      <button class="form-submit" onclick="submitFeedback()">Send Feedback ✉️</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo"><span>FARMERS FARM</span><span>© 2026 · All Rights Reserved</span></div>
+  <p>7 TEA AM · Pure · Natural · Crafted with Love 🌿</p>
+  <div class="footer-socials"><a href="#" title="Instagram">📸</a><a href="#" title="Facebook">📘</a><a href="#" title="YouTube">▶️</a><a href="#" title="WhatsApp">💬</a></div>
+</footer>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header"><h3>🛒 Your Cart</h3><button class="cart-close" id="cartClose">✕</button></div>
+  <div class="cart-items" id="cartItems"><div class="cart-empty"><span class="cart-empty-icon">🛒</span><p>Your cart is empty</p></div></div>
+  <div class="cart-footer">
+    <div class="cart-total"><span class="cart-total-label">Total</span><span class="cart-total-price" id="cartTotal">₹0</span></div>
+    <button class="cart-checkout" id="checkoutBtn" disabled>Place Order</button>
+  </div>
+</div>
+
+<!-- QUICK VIEW MODAL -->
+<div class="quickview-overlay" id="quickviewOverlay" onclick="if(event.target===this)closeQuickView()">
+  <div class="quickview-modal" style="position:relative;">
+    <button class="quickview-close" onclick="closeQuickView()">✕</button>
+    <span class="quickview-icon" id="qvIcon">🫙</span>
+    <div class="quickview-weight" id="qvWeight">250g</div>
+    <div class="quickview-name" id="qvName">Classic Pack</div>
+    <div class="quickview-price" id="qvPrice">₹620</div>
+    <div class="quickview-desc" id="qvDesc">~125 cups · Most popular choice</div>
+    <button class="quickview-add" id="qvAddBtn">Add to Cart</button>
+  </div>
+</div>
+
+<!-- CUSTOMER AUTH MODAL (Login / Signup) -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-modal" style="position:relative;">
+    <button class="auth-modal-close" id="authModalClose">✕</button>
+    <div class="auth-logo">FARMERS FARM</div>
+    <div class="auth-subtitle">Customer Portal</div>
+    <div class="auth-divider"></div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-form="loginFormContainer">Login</button>
+      <button class="auth-tab" data-form="signupFormContainer">Sign Up</button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <!-- LOGIN -->
+    <form class="auth-form active" id="loginFormContainer">
+      <div class="auth-field"><label>Email</label><input type="email" id="clEmail" placeholder="your@email.com" required></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="clPass" placeholder="Enter password" required></div>
+      <button type="submit" class="auth-btn" id="customerLoginForm">Sign In →</button>
+    </form>
+    <!-- SIGNUP -->
+    <form class="auth-form" id="signupFormContainer">
+      <div class="auth-field"><label>Full Name</label><input type="text" id="csName" placeholder="Your full name" required></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="csEmail" placeholder="your@email.com" required></div>
+      <div class="auth-field"><label>Phone</label><input type="tel" id="csPhone" placeholder="+91 98765 43210" required></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="csPass" placeholder="Create password" required></div>
+      <button type="submit" class="auth-btn" id="customerSignupForm">Create Account →</button>
+    </form>
+  </div>
+</div>
+
+<!-- ADDRESS / CHECKOUT MODAL -->
+<div class="checkout-overlay" id="addressOverlay">
+  <div class="checkout-modal" style="text-align:left;">
+    <button class="auth-modal-close" onclick="closeAddressModal()">✕</button>
+    <div class="auth-title" style="margin-bottom:8px;">Delivery Details</div>
+    <div class="auth-subtitle" style="margin-bottom:24px;">Where should we deliver your tea?</div>
+    
+    <button class="location-btn" id="getLocationBtn" type="button">
+      <span class="loc-icon">📍</span> Use My Current Location
+    </button>
+    
+    <form id="checkoutAddressForm" class="auth-form active">
+      <div class="auth-field">
+        <label>Full Address</label>
+        <textarea id="checkoutAddress" placeholder="House/Flat No, Street, Landmark" required style="resize:vertical; min-height:80px;"></textarea>
+      </div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div class="auth-field" style="margin-bottom:0;">
+          <label>City</label>
+          <input type="text" id="checkoutCity" placeholder="City" required>
+        </div>
+        <div class="auth-field" style="margin-bottom:0;">
+          <label>PIN Code</label>
+          <input type="text" id="checkoutPin" placeholder="PIN" required>
+        </div>
+      </div>
+      <input type="hidden" id="checkoutLat">
+      <input type="hidden" id="checkoutLng">
+      <button type="submit" class="auth-btn">Confirm Order →</button>
+    </form>
+  </div>
+</div>
+
+<!-- CHECKOUT SUCCESS MODAL -->
+<div class="checkout-overlay" id="checkoutOverlay" onclick="if(event.target===this)closeCheckoutSuccess()">
+  <div class="checkout-modal">
+    <div class="checkout-success-icon">🎉</div>
+    <div class="checkout-success-title">Order Placed!</div>
+    <div class="checkout-success-id" id="checkoutOrderId">ORD-XXXXX</div>
+    <div class="checkout-success-text">Your order of <strong id="checkoutOrderTotal">₹0</strong> has been placed successfully. We'll prepare it for shipping right away!</div>
+    <button class="checkout-ok-btn" onclick="closeCheckoutSuccess()">Continue Shopping</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- BACK TO TOP -->
+<button class="back-to-top" id="backToTop" title="Back to top">↑</button>
+
+<!-- WHATSAPP FLOAT -->
+<a href="https://wa.me/919876543210" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">💬</a>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

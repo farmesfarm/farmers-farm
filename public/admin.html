@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard – Farmers Farm</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-page" id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">FARMERS FARM</div>
+    <div class="login-sub">Admin Panel</div>
+    <div class="login-divider"></div>
+    <h2 class="login-title">Welcome Back</h2>
+    <form id="loginForm" autocomplete="off">
+      <div class="login-error" id="loginError"></div>
+      <div class="login-field"><label>Admin Email</label><input type="email" id="loginEmail" placeholder="Enter admin email" required></div>
+      <div class="login-field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" required></div>
+      <button type="submit" class="login-btn">Sign In →</button>
+    </form>
+    <a href="index.html" class="login-back">← Back to Website</a>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">FARMERS FARM</div>
+      <span class="sidebar-badge">Admin Panel</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-link active" data-page="overview"><span class="sidebar-link-icon">📊</span> Overview</button>
+      <button class="sidebar-link" data-page="products"><span class="sidebar-link-icon">📦</span> Products</button>
+      <button class="sidebar-link" data-page="orders"><span class="sidebar-link-icon">🛒</span> Orders <span class="sidebar-link-badge" id="ordersBadge" style="display:none;">0</span></button>
+      <button class="sidebar-link" data-page="feedbacks"><span class="sidebar-link-icon">💬</span> Feedbacks <span class="sidebar-link-badge" id="feedbacksBadge" style="display:none;">0</span></button>
+      <button class="sidebar-link" data-page="customers"><span class="sidebar-link-icon">👥</span> Customers</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">A</div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--mist);">Admin</div><div class="sidebar-email">admin@farmersfarm.in</div></div>
+      </div>
+      <button class="sidebar-logout" id="logoutBtn"><span>🚪</span> Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- OVERVIEW -->
+    <div class="admin-page active" id="page-overview">
+      <div class="page-header"><h1>Dashboard Overview</h1><p>Welcome back, Admin. Here's what's happening with your store.</p></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-card-icon">📦</div><div class="stat-card-value" id="statProducts">0</div><div class="stat-card-label">Total Products</div></div>
+        <div class="stat-card"><div class="stat-card-icon">🛒</div><div class="stat-card-value" id="statOrders">0</div><div class="stat-card-label">Total Orders</div></div>
+        <div class="stat-card"><div class="stat-card-icon">👥</div><div class="stat-card-value" id="statCustomers">0</div><div class="stat-card-label">Customers</div></div>
+        <div class="stat-card"><div class="stat-card-icon">💬</div><div class="stat-card-value" id="statFeedbacks">0</div><div class="stat-card-label">Feedbacks</div></div>
+        <div class="stat-card"><div class="stat-card-icon">💰</div><div class="stat-card-value" id="statRevenue">₹0</div><div class="stat-card-label">Total Revenue</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h3 class="panel-title">Quick Actions</h3></div>
+        <div class="panel-body" style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn-add" onclick="document.querySelector('[data-page=products]').click()">📦 Manage Products</button>
+          <button class="btn-add" onclick="document.querySelector('[data-page=orders]').click()">🛒 View Orders</button>
+          <button class="btn-add" onclick="document.querySelector('[data-page=customers]').click()">👥 View Customers</button>
+          <button class="btn-add" onclick="document.querySelector('[data-page=feedbacks]').click()">💬 View Feedbacks</button>
+          <a href="index.html" class="btn-add" style="text-decoration:none;">🌐 View Website</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="admin-page" id="page-products">
+      <div class="page-header"><h1>Products</h1><p>Manage your 7 TEA AM product lineup.</p></div>
+      <div class="panel">
+        <div class="panel-header"><h3 class="panel-title">All Products</h3><button class="btn-add" id="addProductBtn">+ Add Product</button></div>
+        <div class="panel-body" style="overflow-x:auto;">
+          <table class="data-table"><thead><tr><th>Icon</th><th>Product</th><th>Price</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead><tbody id="productsBody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="admin-page" id="page-orders">
+      <div class="page-header"><h1>Orders</h1><p>View all customer orders placed through the website.</p></div>
+      <div class="panel"><div class="panel-header"><h3 class="panel-title">All Orders</h3></div><div class="panel-body" id="ordersContainer"></div></div>
+    </div>
+
+    <!-- FEEDBACKS -->
+    <div class="admin-page" id="page-feedbacks">
+      <div class="page-header"><h1>Customer Feedback</h1><p>Read what your customers are saying.</p></div>
+      <div class="panel"><div class="panel-header"><h3 class="panel-title">All Feedbacks</h3></div><div class="panel-body" id="feedbacksContainer"></div></div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="admin-page" id="page-customers">
+      <div class="page-header"><h1>Registered Customers</h1><p>All customers who have signed up on your website.</p></div>
+      <div class="panel"><div class="panel-header"><h3 class="panel-title">All Customers</h3></div><div class="panel-body" id="customersContainer"></div></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalTitle">Add New Product</h3><button class="modal-close" id="modalClose">✕</button></div>
+    <form id="productForm">
+      <div class="modal-body">
+        <div class="modal-field"><div class="field-row"><div><label>Icon (emoji)</label><input type="text" id="pIcon" value="🫙" maxlength="4"></div><div><label>Weight</label><input type="text" id="pWeight" placeholder="e.g. 250g" required></div></div></div>
+        <div class="modal-field"><label>Product Name</label><input type="text" id="pName" placeholder="e.g. Classic Pack" required></div>
+        <div class="modal-field"><div class="field-row"><div><label>Price (₹)</label><input type="number" id="pPrice" placeholder="620" required min="1"></div><div><label>Popular?</label><select id="pPopular"><option value="no">No</option><option value="yes">Yes – Best Seller</option></select></div></div></div>
+        <div class="modal-field"><label>Description / Note</label><textarea id="pNote" placeholder="e.g. ~125 cups · Most popular choice"></textarea></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn-cancel" id="modalCancel">Cancel</button><button type="submit" class="btn-save">Save Product</button></div>
+    </form>
+  </div>
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
