@@ -1,0 +1,8 @@
+{
+  "name": "farmers-farm-root",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "install": "cd backend && npm install"
+  }
+}
