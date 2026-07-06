@@ -4,14 +4,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 // ── DEFAULT PRODUCTS ──
-const DEFAULT_PRODUCTS = [
-  { id: 1, icon: '🫙', weight: '40g', name: 'Taster Pack', price: 120, note: '~20 cups · Perfect for first-timers', popular: false },
-  { id: 2, icon: '🫙', weight: '100g', name: 'Starter Pack', price: 280, note: '~50 cups · Great for solo brewers', popular: false },
-  { id: 3, icon: '🫙', weight: '250g', name: 'Classic Pack', price: 620, note: '~125 cups · Most popular choice', popular: true },
-  { id: 4, icon: '🫙', weight: '500g', name: 'Family Pack', price: 1100, note: '~250 cups · For the whole family', popular: false },
-  { id: 5, icon: '🏺', weight: '750g', name: 'Estate Pack', price: 1580, note: '~375 cups · Value for regulars', popular: false },
-  { id: 6, icon: '🏺', weight: '1kg', name: 'Harvest Pack', price: 1999, note: '~500 cups · Best value per cup', popular: false },
-];
+// Removed as per dynamic admin requirement
 
 // ── DATA LAYER ──
 let globalProductsCache = [];
@@ -22,12 +15,12 @@ async function fetchProducts() {
     globalProductsCache = await res.json();
   } catch (err) {
     console.error('Error fetching products', err);
-    globalProductsCache = DEFAULT_PRODUCTS;
+    globalProductsCache = [];
   }
 }
 
 function getProducts() {
-  return globalProductsCache.length ? globalProductsCache : DEFAULT_PRODUCTS;
+  return globalProductsCache;
 }
 
 function getCart() {
@@ -77,17 +70,21 @@ function logoutCustomer() {
 
 // ── PRELOADER ──
 window.addEventListener('load', () => {
-  setTimeout(() => {
-    const preloader = document.getElementById('preloader');
-    if (preloader) {
-      preloader.classList.add('hide');
-      setTimeout(() => preloader.remove(), 600);
-    }
-  }, 2000);
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    preloader.classList.add('hide');
+    setTimeout(() => preloader.remove(), 600);
+  }
 });
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', async () => {
+  // Theme Toggle
+  document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  });
+
   const leafBg = document.getElementById('leafBg');
   if (leafBg) {
     const symbols = ['🍃','🌿','🍵','🌱','✨'];
@@ -122,12 +119,18 @@ function renderProducts() {
   if (!grid) return;
   const products = getProducts();
   grid.innerHTML = '';
+  
+  if (products.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 60px; color: var(--gold); font-size: 20px;">Premium products are brewing! Check back later.</div>';
+    return;
+  }
+
   products.forEach(p => {
     const card = document.createElement('div');
     card.className = 'packet-card' + (p.popular ? ' popular' : '');
     card.innerHTML = `
       ${p.popular ? '<div class="popular-badge">Best Seller</div>' : ''}
-      <span class="packet-icon">${p.icon}</span>
+      <img src="${p.image || '/images/pouch.png'}" alt="${p.name}" class="packet-image" />
       <div class="packet-weight">${p.weight}</div>
       <div class="packet-label">${p.name}</div>
       <div class="packet-price">₹${p.price.toLocaleString('en-IN')}</div>
@@ -145,7 +148,10 @@ function renderProducts() {
 // ── QUICK VIEW ──
 function openQuickView(product) {
   const overlay = document.getElementById('quickviewOverlay');
-  document.getElementById('qvIcon').textContent = product.icon;
+  const imgEl = document.getElementById('qvIcon');
+  if(imgEl) {
+    imgEl.outerHTML = `<img src="${product.image || '/images/pouch.png'}" id="qvIcon" alt="Product" class="qv-image" />`;
+  }
   document.getElementById('qvWeight').textContent = product.weight;
   document.getElementById('qvName').textContent = product.name;
   document.getElementById('qvPrice').textContent = '₹' + product.price.toLocaleString('en-IN');
@@ -208,7 +214,7 @@ function updateCartUI() {
   } else {
     cartItemsEl.innerHTML = cart.map(item => `
       <div class="cart-item">
-        <span class="cart-item-icon">${item.icon}</span>
+        <img src="${item.image || '/images/pouch.png'}" class="cart-item-image" alt="${item.name}" />
         <div class="cart-item-info">
           <div class="cart-item-name">${item.weight} ${item.name}</div>
           <div class="cart-item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
@@ -304,86 +310,23 @@ document.getElementById('checkoutAddressForm')?.addEventListener('submit', async
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/payment/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: totalPrice })
-    });
-    const rzpOrder = await res.json();
-
-    const options = {
-      key: 'rzp_test_dummy', // Replace with real key in production
-      amount: rzpOrder.amount,
-      currency: rzpOrder.currency,
-      name: "Farmers Farm",
-      description: "Tea Order",
-      order_id: rzpOrder.id,
-      handler: async function (response) {
-        // Payment successful, now verify and save order
-        const verifyRes = await fetch('/api/payment/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(response)
-        });
-        
-        if (verifyRes.ok) {
-          const order = {
-            id: 'ORD-' + Date.now().toString(36).toUpperCase(),
-            date: new Date().toLocaleString('en-IN'),
-            items: cart.map(c => `${c.weight} ${c.name} x${c.qty}`),
-            total: totalPrice,
-            customer: {
-              name: customer.name,
-              email: customer.email,
-              phone: customer.phone,
-            },
-            shipping: { address, city, pin, lat, lng },
-            paymentId: response.razorpay_payment_id || 'test_payment'
-          };
-          
-          await saveOrder(order);
-          cart = [];
-          saveCart(cart);
-          updateCartUI();
-          closeAddressModal();
-          showCheckoutSuccess(order);
-        } else {
-          showToast('⚠️ Payment verification failed.');
-        }
-      },
-      prefill: {
-        name: customer.name,
-        email: customer.email,
-        contact: customer.phone
-      },
-      theme: { color: "#2E5E3E" },
-      modal: {
-        ondismiss: function() {
-          btn.innerHTML = 'Confirm Order →';
-          btn.disabled = false;
-        }
-      }
+    const order = {
+      id: 'ORD-' + Date.now().toString(36).toUpperCase(),
+      date: new Date().toLocaleString('en-IN'),
+      items: cart.map(c => `${c.weight} ${c.name} x${c.qty}`),
+      total: totalPrice,
+      customer: { name: customer.name, email: customer.email, phone: customer.phone },
+      shipping: { address, city, pin, lat, lng }
     };
-
-    if (window.Razorpay) {
-      const rzp = new Razorpay(options);
-      rzp.open();
-    } else {
-      // Fallback if Razorpay script didn't load
-      showToast('⚠️ Razorpay not loaded. Simulating order placement.');
-      const order = {
-        id: 'ORD-' + Date.now().toString(36).toUpperCase(),
-        date: new Date().toLocaleString('en-IN'),
-        items: cart.map(c => `${c.weight} ${c.name} x${c.qty}`),
-        total: totalPrice,
-        customer: { name: customer.name, email: customer.email, phone: customer.phone },
-        shipping: { address, city, pin, lat, lng }
-      };
-      await saveOrder(order);
-      cart = []; saveCart(cart); updateCartUI(); closeAddressModal(); showCheckoutSuccess(order);
-    }
+    
+    await saveOrder(order);
+    cart = [];
+    saveCart(cart);
+    updateCartUI();
+    closeAddressModal();
+    showCheckoutSuccess(order);
   } catch(err) {
-    showToast('⚠️ Error initiating payment.');
+    showToast('⚠️ Error placing order.');
     btn.innerHTML = 'Confirm Order →';
     btn.disabled = false;
   }
@@ -487,12 +430,7 @@ function initCustomerAuth() {
   // User icon click
   document.getElementById('navUserBtn')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    const customer = getLoggedInCustomer();
-    if (customer) {
-      toggleUserDropdown();
-    } else {
-      openAuthModal();
-    }
+    toggleUserDropdown();
   });
 
   // Close dropdown on outside click
@@ -538,38 +476,34 @@ function toggleUserDropdown() {
 
 function updateAuthUI() {
   const customer = getLoggedInCustomer();
-  const navUserBtn = document.getElementById('navUserBtn');
-  const dropdown = document.getElementById('userDropdown');
+  const navUserIcon = document.getElementById('navUserIcon');
+  const loggedInView = document.getElementById('dropdownLoggedInView');
+  const loggedOutView = document.getElementById('dropdownLoggedOutView');
 
   if (customer) {
-    if (navUserBtn) {
-      navUserBtn.textContent = customer.name.charAt(0).toUpperCase();
-      navUserBtn.style.background = 'linear-gradient(135deg, var(--green-mid), var(--gold))';
-      navUserBtn.style.color = '#fff';
-      navUserBtn.style.width = '32px';
-      navUserBtn.style.height = '32px';
-      navUserBtn.style.borderRadius = '50%';
-      navUserBtn.style.display = 'flex';
-      navUserBtn.style.alignItems = 'center';
-      navUserBtn.style.justifyContent = 'center';
-      navUserBtn.style.fontSize = '14px';
-      navUserBtn.style.fontWeight = '700';
-      navUserBtn.title = customer.name;
+    if (navUserIcon) {
+      navUserIcon.textContent = customer.name.charAt(0).toUpperCase();
+      navUserIcon.style.background = 'linear-gradient(135deg, var(--green-mid), var(--gold))';
+      navUserIcon.style.color = '#fff';
+      navUserIcon.style.fontSize = '14px';
+      navUserIcon.style.fontWeight = '700';
     }
-    if (dropdown) {
+    if (loggedInView && loggedOutView) {
+      loggedInView.style.display = 'block';
+      loggedOutView.style.display = 'none';
       document.getElementById('dropdownName').textContent = customer.name;
       document.getElementById('dropdownEmail').textContent = customer.email;
     }
   } else {
-    if (navUserBtn) {
-      navUserBtn.textContent = '👤';
-      navUserBtn.style.background = 'none';
-      navUserBtn.style.color = 'var(--mist)';
-      navUserBtn.style.width = 'auto';
-      navUserBtn.style.height = 'auto';
-      navUserBtn.style.borderRadius = '0';
-      navUserBtn.style.fontSize = '20px';
-      navUserBtn.title = 'Login / Sign Up';
+    if (navUserIcon) {
+      navUserIcon.textContent = '👤';
+      navUserIcon.style.background = 'none';
+      navUserIcon.style.color = 'var(--mist)';
+      navUserIcon.style.fontSize = '20px';
+    }
+    if (loggedInView && loggedOutView) {
+      loggedInView.style.display = 'none';
+      loggedOutView.style.display = 'block';
     }
   }
 }
@@ -719,3 +653,165 @@ function animateCounter(el) {
   }
   requestAnimationFrame(update);
 }
+
+// ── MY ORDERS ──
+function openMyOrdersModal() {
+  document.getElementById('myOrdersOverlay')?.classList.add('open');
+  fetchAndRenderMyOrders();
+}
+
+function closeMyOrdersModal() {
+  document.getElementById('myOrdersOverlay')?.classList.remove('open');
+}
+
+async function fetchAndRenderMyOrders() {
+  const container = document.getElementById('myOrdersList');
+  const customer = getLoggedInCustomer();
+  
+  if (!customer) {
+    container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--mist);">Please login to view your orders.</div>';
+    return;
+  }
+  
+  container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--gold);">Loading your orders...</div>';
+  
+  try {
+    const res = await fetch('/api/orders/customer/' + encodeURIComponent(customer.email));
+    if (!res.ok) throw new Error('Network response was not ok');
+    const orders = await res.json();
+    
+    if (orders.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding: 30px; color: rgba(228,237,231,0.5);">No orders found. Time to stock up on some tea! ☕</div>';
+      return;
+    }
+    
+    container.innerHTML = orders.map(o => {
+      let statusColor = '#f39c12'; // default orange/yellow
+      if (o.status === 'Processing') statusColor = '#3498db'; // blue
+      else if (o.status === 'Shipped') statusColor = '#9b59b6'; // purple
+      else if (o.status === 'Delivered') statusColor = '#2ecc71'; // green
+      else if (o.status === 'Cancelled') statusColor = '#e74c3c'; // red
+      
+      return `
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(228,237,231,0.1); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
+            <div>
+              <div style="font-size: 14px; font-weight: bold; color: var(--gold);">${o.id}</div>
+              <div style="font-size: 12px; color: var(--mist);">${o.date}</div>
+            </div>
+            <div>
+              <span style="background: ${statusColor}22; color: ${statusColor}; border: 1px solid ${statusColor}; border-radius: 12px; padding: 4px 10px; font-size: 12px; font-weight: bold;">
+                ${o.status || 'Pending'}
+              </span>
+            </div>
+          </div>
+          <div style="font-size: 14px; color: var(--white); margin-bottom: 10px; line-height: 1.5;">
+            ${o.items.join('<br>')}
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 10px;">
+              ${o.status === 'Delivered' ? `
+                ${o.review ? `<span style="font-size: 12px; color: var(--gold);">⭐ Reviewed (${o.review.rating}/5)</span>` : `<button onclick="openReviewModal('${o.id}')" style="background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">⭐ Review</button>`}
+                ${o.complaint ? `<span style="font-size: 12px; color: #e74c3c;">⚠️ Complaint Filed</span>` : `<button onclick="openComplaintModal('${o.id}')" style="background: none; border: 1px solid #e74c3c; color: #e74c3c; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">⚠️ Complain</button>`}
+              ` : `<span style="font-size: 12px; color: var(--mist);">Options available after delivery</span>`}
+            </div>
+            <div style="text-align: right; font-weight: bold; color: var(--gold);">
+              Total: ₹${o.total.toLocaleString('en-IN')}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+  } catch(err) {
+    console.error(err);
+    container.innerHTML = '<div style="text-align:center; padding: 20px; color: #e74c3c;">Failed to load orders. Please try again later.</div>';
+  }
+}
+
+// ── ORDER REVIEWS & COMPLAINTS ──
+function openReviewModal(orderId) {
+  document.getElementById('reviewOrderId').value = orderId;
+  document.getElementById('reviewOrderTitle').textContent = 'For Order ' + orderId;
+  document.getElementById('reviewForm').reset();
+  document.getElementById('reviewOverlay')?.classList.add('open');
+}
+
+function closeReviewModal() {
+  document.getElementById('reviewOverlay')?.classList.remove('open');
+}
+
+function openComplaintModal(orderId) {
+  document.getElementById('complaintOrderId').value = orderId;
+  document.getElementById('complaintOrderTitle').textContent = 'For Order ' + orderId;
+  document.getElementById('complaintForm').reset();
+  document.getElementById('complaintOverlay')?.classList.add('open');
+}
+
+function closeComplaintModal() {
+  document.getElementById('complaintOverlay')?.classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('reviewForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('reviewOrderId').value;
+    const rating = document.getElementById('reviewRating').value;
+    const comment = document.getElementById('reviewComment').value.trim();
+    
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.innerHTML = 'Submitting...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/orders/' + id + '/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, comment })
+      });
+      if (res.ok) {
+        showToast('⭐ Thank you for your review!');
+        closeReviewModal();
+        fetchAndRenderMyOrders(); // Refresh to show "Reviewed"
+      } else {
+        showToast('⚠️ Error submitting review.');
+      }
+    } catch(err) {
+      showToast('⚠️ Server error.');
+    } finally {
+      btn.innerHTML = 'Submit Review';
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('complaintForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('complaintOrderId').value;
+    const text = document.getElementById('complaintText').value.trim();
+    
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.innerHTML = 'Submitting...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/orders/' + id + '/complaint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      if (res.ok) {
+        showToast('⚠️ Complaint registered. We will contact you soon.');
+        closeComplaintModal();
+        fetchAndRenderMyOrders(); // Refresh to show "Complaint Filed"
+      } else {
+        showToast('⚠️ Error submitting complaint.');
+      }
+    } catch(err) {
+      showToast('⚠️ Server error.');
+    } finally {
+      btn.innerHTML = 'Submit Complaint';
+      btn.disabled = false;
+    }
+  });
+});
+

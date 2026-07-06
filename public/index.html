@@ -39,14 +39,19 @@
     <li><a href="#contact">Contact</a></li>
   </ul>
   <div class="nav-right">
-    <!-- User Auth Icon -->
-    <div class="nav-user" id="navUserBtn" style="position:relative;" title="Login / Sign Up">👤
+    <button id="themeToggleBtn" title="Toggle Theme" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--mist); margin-right:12px;">🌓</button>
+    <div class="nav-user" id="navUserBtn" style="position:relative; cursor:pointer;" title="Account">
+      <div id="navUserIcon" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; font-size:20px; color:var(--mist);">👤</div>
       <div class="user-dropdown" id="userDropdown">
-        <div class="user-dropdown-name" id="dropdownName"></div>
-        <div class="user-dropdown-email" id="dropdownEmail"></div>
-        <button class="user-dropdown-item" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'});document.getElementById('userDropdown').classList.remove('show');">🛒 Shop Now</button>
-        <button class="user-dropdown-item" onclick="document.getElementById('feedback').scrollIntoView({behavior:'smooth'});document.getElementById('userDropdown').classList.remove('show');">💬 Leave Feedback</button>
-        <button class="user-dropdown-item danger" id="logoutBtn">🚪 Logout</button>
+        <div id="dropdownLoggedOutView">
+          <button class="user-dropdown-item" onclick="openAuthModal(); document.getElementById('userDropdown').classList.remove('show');">🔐 Login / Sign Up</button>
+        </div>
+        <div id="dropdownLoggedInView" style="display: none;">
+          <div class="user-dropdown-name" id="dropdownName"></div>
+          <div class="user-dropdown-email" id="dropdownEmail"></div>
+          <button class="user-dropdown-item" onclick="openMyOrdersModal(); document.getElementById('userDropdown').classList.remove('show');">📦 My Orders</button>
+          <button class="user-dropdown-item danger" id="logoutBtn">🚪 Logout</button>
+        </div>
       </div>
     </div>
     <div class="nav-cart" id="cartIcon" title="View Cart">🛒<span class="cart-count" id="cartCount">0</span></div>
@@ -169,10 +174,10 @@
   <div class="contacts-inner">
     <div style="margin-bottom: 48px;" class="reveal"><div class="section-label">Get in Touch</div><h2 class="section-title">All Ways to Reach Us</h2><div class="section-line"></div></div>
     <div class="contacts-grid">
-      <div class="contact-card reveal"><span class="contact-icon">📞</span><div class="contact-type">Phone</div><div class="contact-detail"><a href="tel:+911800227TEA" class="contact-link">+91 1800-227-8327</a></div><div class="contact-sub">Mon–Sat · 9 AM – 6 PM IST<br>Toll-free helpline</div></div>
-      <div class="contact-card reveal"><span class="contact-icon">📱</span><div class="contact-type">WhatsApp</div><div class="contact-detail"><a href="https://wa.me/919876543210" class="contact-link">+91 98765 43210</a></div><div class="contact-sub">Send us a message anytime.<br>We reply within 2 hours.</div></div>
+      <div class="contact-card reveal"><span class="contact-icon">📞</span><div class="contact-type">Phone</div><div class="contact-detail"><a href="tel:+919194197711" class="contact-link">+91 91941 97711</a></div><div class="contact-sub">Mon–Sat · 9 AM – 6 PM IST<br>Helpline</div></div>
+      <div class="contact-card reveal"><span class="contact-icon">📱</span><div class="contact-type">WhatsApp</div><div class="contact-detail"><a href="https://wa.me/919194197711" class="contact-link">+91 91941 97711</a></div><div class="contact-sub">Send us a message anytime.<br>We reply within 2 hours.</div></div>
       <div class="contact-card reveal"><span class="contact-icon">✉️</span><div class="contact-type">Email</div><div class="contact-detail"><a href="mailto:hello@farmersfarm.in" class="contact-link">hello@farmersfarm.in</a></div><div class="contact-sub">For orders, partnerships,<br>and general enquiries.</div></div>
-      <div class="contact-card reveal"><span class="contact-icon">🎙️</span><div class="contact-type">Voicemail Feedback</div><div class="contact-detail"><a href="tel:+911800007TEA" class="contact-link">+91 1800-007-8327</a></div><div class="contact-sub">Leave us your feedback by voice.<br>Available 24 × 7, toll-free.</div></div>
+      <div class="contact-card reveal"><span class="contact-icon">🎙️</span><div class="contact-type">Voicemail Feedback</div><div class="contact-detail"><a href="tel:+919194197711" class="contact-link">+91 91941 97711</a></div><div class="contact-sub">Leave us your feedback by voice.<br>Available 24 × 7.</div></div>
       <div class="contact-card reveal"><span class="contact-icon">📸</span><div class="contact-type">Instagram</div><div class="contact-detail"><a href="#" class="contact-link">@farmersfarm_tea</a></div><div class="contact-sub">Follow our farm stories,<br>recipes & brewing tips.</div></div>
       <div class="contact-card reveal"><span class="contact-icon">💬</span><div class="contact-type">Live Chat</div><div class="contact-detail" style="font-size:15px;">Available on website</div><div class="contact-sub">Chat with our tea expert<br>Mon–Fri · 10 AM – 5 PM IST</div></div>
     </div>
@@ -185,8 +190,8 @@
     <div class="section-label reveal">Your Voice Matters</div>
     <h2 class="section-title reveal">Leave Us Feedback</h2>
     <div class="section-line reveal"></div>
-    <p class="reveal">Drop a voicemail anytime on our 24×7 toll-free line, or fill in the form below. Every piece of feedback helps us grow better — just like our tea plants.</p>
-    <button class="voicemail-btn reveal" onclick="showToast('🎙️ Dialing voicemail… +91 1800-007-8327')">🎙️ Leave a Voicemail — 1800-007-8327</button>
+    <p class="reveal">Drop a voicemail anytime on our 24×7 line, or fill in the form below. Every piece of feedback helps us grow better — just like our tea plants.</p>
+    <button class="voicemail-btn reveal" onclick="showToast('🎙️ Dialing voicemail… +91 91941 97711')">🎙️ Leave a Voicemail — +91 91941 97711</button>
     <div class="feedback-form reveal">
       <div class="form-row">
         <div class="form-field"><label>Your Name</label><input type="text" placeholder="Your full name" id="fname"></div>
@@ -306,6 +311,63 @@
   </div>
 </div>
 
+<!-- MY ORDERS MODAL -->
+<div class="auth-overlay" id="myOrdersOverlay" onclick="if(event.target===this)closeMyOrdersModal()">
+  <div class="auth-modal" style="max-width: 600px; width: 90%;">
+    <div class="auth-header" style="justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 20px;">
+      <h2 style="font-family: 'Playfair Display', serif; color: var(--gold); margin: 0;">My Orders</h2>
+      <button onclick="closeMyOrdersModal()" style="background: none; border: none; color: var(--white); font-size: 24px; cursor: pointer;">✕</button>
+    </div>
+    <div id="myOrdersList" style="max-height: 400px; overflow-y: auto;">
+      <!-- Orders will be injected here -->
+    </div>
+  </div>
+</div>
+
+<!-- ORDER REVIEW MODAL -->
+<div class="checkout-overlay" id="reviewOverlay" onclick="if(event.target===this)closeReviewModal()">
+  <div class="checkout-modal" style="text-align:left;">
+    <button class="auth-modal-close" onclick="closeReviewModal()">✕</button>
+    <div class="auth-title" style="margin-bottom:8px;">Leave a Review</div>
+    <div class="auth-subtitle" style="margin-bottom:24px;" id="reviewOrderTitle"></div>
+    <form id="reviewForm" class="auth-form active">
+      <input type="hidden" id="reviewOrderId">
+      <div class="auth-field">
+        <label>Rating (1-5)</label>
+        <select id="reviewRating" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-light); background: rgba(255,255,255,0.05); color: var(--white);">
+          <option value="5">5 - Excellent</option>
+          <option value="4">4 - Very Good</option>
+          <option value="3">3 - Good</option>
+          <option value="2">2 - Fair</option>
+          <option value="1">1 - Poor</option>
+        </select>
+      </div>
+      <div class="auth-field">
+        <label>Comments</label>
+        <textarea id="reviewComment" placeholder="Tell us what you think..." required style="resize:vertical; min-height:80px; width: 100%;"></textarea>
+      </div>
+      <button type="submit" class="auth-btn">Submit Review</button>
+    </form>
+  </div>
+</div>
+
+<!-- ORDER COMPLAINT MODAL -->
+<div class="checkout-overlay" id="complaintOverlay" onclick="if(event.target===this)closeComplaintModal()">
+  <div class="checkout-modal" style="text-align:left;">
+    <button class="auth-modal-close" onclick="closeComplaintModal()">✕</button>
+    <div class="auth-title" style="margin-bottom:8px; color: #e74c3c;">File a Complaint</div>
+    <div class="auth-subtitle" style="margin-bottom:24px;" id="complaintOrderTitle"></div>
+    <form id="complaintForm" class="auth-form active">
+      <input type="hidden" id="complaintOrderId">
+      <div class="auth-field">
+        <label>What went wrong?</label>
+        <textarea id="complaintText" placeholder="Please describe the issue..." required style="resize:vertical; min-height:80px; width: 100%;"></textarea>
+      </div>
+      <button type="submit" class="auth-btn" style="background: #e74c3c;">Submit Complaint</button>
+    </form>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -313,9 +375,9 @@
 <button class="back-to-top" id="backToTop" title="Back to top">↑</button>
 
 <!-- WHATSAPP FLOAT -->
-<a href="https://wa.me/919876543210" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">💬</a>
+<a href="https://wa.me/919194197711" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">💬</a>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script src="js/app.js"></script>
 </body>
 </html>

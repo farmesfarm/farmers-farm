@@ -20,9 +20,10 @@
     <h2 class="login-title">Welcome Back</h2>
     <form id="loginForm" autocomplete="off">
       <div class="login-error" id="loginError"></div>
-      <div class="login-field"><label>Admin Email</label><input type="email" id="loginEmail" placeholder="Enter admin email" required></div>
-      <div class="login-field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" required></div>
-      <button type="submit" class="login-btn">Sign In →</button>
+      <div class="login-field" id="emailField"><label>Admin Email</label><input type="email" id="loginEmail" placeholder="Enter admin email" required></div>
+      <div class="login-field" id="passField"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" required></div>
+      <div class="login-field" id="otpField" style="display:none;"><label>Enter OTP</label><input type="text" id="loginOtp" placeholder="6-digit code" maxlength="6"></div>
+      <button type="submit" class="login-btn" id="loginSubmitBtn">Sign In →</button>
     </form>
     <a href="index.html" class="login-back">← Back to Website</a>
   </div>
@@ -40,6 +41,7 @@
       <button class="sidebar-link" data-page="products"><span class="sidebar-link-icon">📦</span> Products</button>
       <button class="sidebar-link" data-page="orders"><span class="sidebar-link-icon">🛒</span> Orders <span class="sidebar-link-badge" id="ordersBadge" style="display:none;">0</span></button>
       <button class="sidebar-link" data-page="feedbacks"><span class="sidebar-link-icon">💬</span> Feedbacks <span class="sidebar-link-badge" id="feedbacksBadge" style="display:none;">0</span></button>
+      <button class="sidebar-link" data-page="complaints"><span class="sidebar-link-icon">⚠️</span> Complaints <span class="sidebar-link-badge" id="complaintsBadge" style="display:none; background:#e74c3c;">0</span></button>
       <button class="sidebar-link" data-page="customers"><span class="sidebar-link-icon">👥</span> Customers</button>
     </nav>
     <div class="sidebar-footer">
@@ -81,7 +83,7 @@
       <div class="panel">
         <div class="panel-header"><h3 class="panel-title">All Products</h3><button class="btn-add" id="addProductBtn">+ Add Product</button></div>
         <div class="panel-body" style="overflow-x:auto;">
-          <table class="data-table"><thead><tr><th>Icon</th><th>Product</th><th>Price</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead><tbody id="productsBody"></tbody></table>
+          <table class="data-table"><thead><tr><th>Image</th><th>Product</th><th>Price</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead><tbody id="productsBody"></tbody></table>
         </div>
       </div>
     </div>
@@ -96,6 +98,12 @@
     <div class="admin-page" id="page-feedbacks">
       <div class="page-header"><h1>Customer Feedback</h1><p>Read what your customers are saying.</p></div>
       <div class="panel"><div class="panel-header"><h3 class="panel-title">All Feedbacks</h3></div><div class="panel-body" id="feedbacksContainer"></div></div>
+    </div>
+
+    <!-- COMPLAINTS -->
+    <div class="admin-page" id="page-complaints">
+      <div class="page-header"><h1 style="color:#e74c3c;">Customer Complaints</h1><p>Address issues raised by your customers.</p></div>
+      <div class="panel"><div class="panel-header"><h3 class="panel-title">Order Complaints</h3></div><div class="panel-body" id="complaintsContainer"></div></div>
     </div>
 
     <!-- CUSTOMERS -->
@@ -113,7 +121,7 @@
     <div class="modal-header"><h3 id="modalTitle">Add New Product</h3><button class="modal-close" id="modalClose">✕</button></div>
     <form id="productForm">
       <div class="modal-body">
-        <div class="modal-field"><div class="field-row"><div><label>Icon (emoji)</label><input type="text" id="pIcon" value="🫙" maxlength="4"></div><div><label>Weight</label><input type="text" id="pWeight" placeholder="e.g. 250g" required></div></div></div>
+        <div class="modal-field"><div class="field-row"><div><label>Product Image</label><input type="file" id="pImage" accept="image/*" required></div><div><label>Weight</label><input type="text" id="pWeight" placeholder="e.g. 250g" required></div></div></div>
         <div class="modal-field"><label>Product Name</label><input type="text" id="pName" placeholder="e.g. Classic Pack" required></div>
         <div class="modal-field"><div class="field-row"><div><label>Price (₹)</label><input type="number" id="pPrice" placeholder="620" required min="1"></div><div><label>Popular?</label><select id="pPopular"><option value="no">No</option><option value="yes">Yes – Best Seller</option></select></div></div></div>
         <div class="modal-field"><label>Description / Note</label><textarea id="pNote" placeholder="e.g. ~125 cups · Most popular choice"></textarea></div>

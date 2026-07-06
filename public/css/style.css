@@ -23,6 +23,17 @@
   --glass-blur: blur(16px);
 }
 
+[data-theme="dark"] {
+  --cream: #0D1410;
+  --charcoal: #E4EDE7;
+  --mist: #A4B2AA;
+  --glass-bg-light: rgba(13,20,16,0.7);
+  --glass-bg: rgba(255,255,255,0.05);
+  --glass-border: rgba(255,255,255,0.1);
+  --white: #121A16;
+  --green-deep: #091711;
+}
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -45,8 +56,7 @@ body {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 42px; letter-spacing: 6px; color: var(--gold);
   margin-bottom: 8px;
-  animation: preloaderPulse 1.2s infinite;
-  text-shadow: 0 0 30px rgba(201,168,76,0.3);
+  text-shadow: 0 0 30px rgba(201,168,76,0.1);
 }
 .preloader-sub {
   font-size: 11px; letter-spacing: 5px; color: var(--mist);
@@ -180,28 +190,28 @@ nav.scrolled {
   width: 600px; height: 600px;
   background: radial-gradient(circle, var(--gold), transparent 70%);
   top: -100px; right: -100px;
-  animation: orbFloat 8s ease-in-out infinite;
+  animation: orbFloat 25s ease-in-out infinite;
 }
 .hero::after {
   width: 500px; height: 500px;
   background: radial-gradient(circle, var(--green-leaf), transparent 70%);
   bottom: -100px; left: -100px;
-  animation: orbFloat 10s ease-in-out infinite reverse;
+  animation: orbFloat 35s ease-in-out infinite reverse;
 }
 @keyframes orbFloat {
   0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, -30px); }
+  50% { transform: translate(15px, -15px); }
 }
 
 .leaf-bg {
   position: absolute; inset: 0; pointer-events: none; overflow: hidden;
 }
-.leaf { position: absolute; opacity: 0.08; font-size: 28px; animation: drift linear infinite; }
+.leaf { position: absolute; opacity: 0.04; animation: drift linear infinite; }
 @keyframes drift {
   from { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-  10%  { opacity: 0.08; }
-  90%  { opacity: 0.08; }
-  to   { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  10%  { opacity: 0.04; }
+  90%  { opacity: 0.04; }
+  to   { transform: translateY(-10vh) rotate(180deg); opacity: 0; }
 }
 
 .hero-inner {
@@ -339,10 +349,40 @@ section { padding: 88px 48px; }
   box-shadow: 0 20px 60px rgba(27,58,45,0.3);
 }
 .about-visual-inner { text-align: center; padding: 40px; }
-.big-leaf { font-size: 120px; display: block; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.4)); animation: floatLeaf 4s ease-in-out infinite; }
-@keyframes floatLeaf {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-12px) rotate(5deg); }
+.big-leaf { 
+  font-size: 120px; 
+  display: inline-block; 
+  position: relative;
+  filter: drop-shadow(0 4px 20px rgba(201,168,76,0.3)); 
+  animation: teaBrew 4s ease-in-out infinite; 
+}
+.big-leaf::before, .big-leaf::after {
+  content: '';
+  position: absolute;
+  width: 15px; height: 50px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  filter: blur(8px);
+  top: -20px;
+  opacity: 0;
+  z-index: -1;
+}
+.big-leaf::before {
+  left: 30%;
+  animation: steamRise 3s infinite ease-out;
+}
+.big-leaf::after {
+  right: 30%;
+  animation: steamRise 3s infinite ease-out 1.5s;
+}
+@keyframes steamRise {
+  0% { transform: translateY(10px) scaleX(1); opacity: 0; }
+  40% { opacity: 0.7; }
+  100% { transform: translateY(-70px) scaleX(2.5); opacity: 0; }
+}
+@keyframes teaBrew {
+  0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 4px 20px rgba(201,168,76,0.2)); }
+  50% { transform: translateY(-6px) scale(1.05); filter: drop-shadow(0 15px 40px rgba(201,168,76,0.6)); }
 }
 .about-visual p {
   font-family: 'Playfair Display', serif;
@@ -411,7 +451,8 @@ section { padding: 88px 48px; }
 
 .packets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
+  justify-content: center;
   gap: 24px; max-width: 1100px; margin: 0 auto;
 }
 .packet-card {
@@ -446,8 +487,8 @@ section { padding: 88px 48px; }
   border-radius: 20px; z-index: 2;
   box-shadow: 0 2px 10px rgba(201,168,76,0.3);
 }
-.packet-icon { font-size: 48px; margin-bottom: 16px; display: block; transition: transform 0.3s; }
-.packet-card:hover .packet-icon { transform: scale(1.15); }
+.packet-image { height: 160px; width: 100%; object-fit: contain; margin-bottom: 16px; display: block; transition: transform 0.3s; }
+.packet-card:hover .packet-image { transform: scale(1.1); }
 .packet-weight {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 36px; color: var(--green-deep); letter-spacing: 2px;
@@ -537,11 +578,7 @@ section { padding: 88px 48px; }
   gap: 16px; text-align: center; padding: 40px;
   box-shadow: 0 20px 60px rgba(27,58,45,0.2);
 }
-.map-placeholder .map-icon { font-size: 64px; animation: mapPing 2s infinite; }
-@keyframes mapPing {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
+.map-placeholder .map-icon { font-size: 64px; }
 .map-placeholder h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--gold); }
 .map-placeholder p { color: rgba(228,237,231,0.8); font-size: 14px; line-height: 1.7; }
 .map-placeholder address { font-style: normal; color: var(--mist); font-size: 15px; line-height: 1.8; margin-top: 8px; }
@@ -613,13 +650,8 @@ section { padding: 88px 48px; }
   font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
   font-weight: 700; cursor: pointer; border-radius: 8px;
   transition: all 0.3s; margin-bottom: 48px;
-  animation: pulse-gold 2.5s infinite;
 }
-.voicemail-btn:hover { background: var(--gold); color: var(--green-deep); animation: none; }
-@keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.4); }
-  50%       { box-shadow: 0 0 0 16px rgba(201,168,76,0); }
-}
+.voicemail-btn:hover { background: var(--gold); color: var(--green-deep); }
 
 .feedback-form {
   display: flex; flex-direction: column; gap: 16px; text-align: left;
@@ -805,13 +837,8 @@ footer p { font-size: 12px; }
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 20px rgba(37,211,102,0.4);
   transition: all 0.3s; text-decoration: none;
-  animation: whatsappPulse 2s infinite;
 }
-.whatsapp-float:hover { transform: scale(1.1); animation: none; }
-@keyframes whatsappPulse {
-  0%, 100% { box-shadow: 0 4px 20px rgba(37,211,102,0.4); }
-  50% { box-shadow: 0 4px 20px rgba(37,211,102,0.15), 0 0 0 12px rgba(37,211,102,0.1); }
-}
+.whatsapp-float:hover { transform: scale(1.1); }
 
 /* ── PRODUCT QUICK VIEW MODAL (Glassmorphism) ── */
 .quickview-overlay {

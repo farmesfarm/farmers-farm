@@ -4,30 +4,23 @@
    ═══════════════════════════════════════════════════════════════ */
 
 // ── ADMIN CREDENTIALS ──
-const ADMIN_EMAIL = 'admin@farmersfarm.in';
-const ADMIN_PASS = 'farm@2026';
 const SESSION_KEY = 'ff_admin_session';
+const TOKEN_KEY = 'ff_admin_token';
 
-// ── DEFAULT PRODUCTS ──
-const DEFAULT_PRODUCTS = [
-  { id: 1, icon: '🫙', weight: '40g', name: 'Taster Pack', price: 120, note: '~20 cups · Perfect for first-timers', popular: false },
-  { id: 2, icon: '🫙', weight: '100g', name: 'Starter Pack', price: 280, note: '~50 cups · Great for solo brewers', popular: false },
-  { id: 3, icon: '🫙', weight: '250g', name: 'Classic Pack', price: 620, note: '~125 cups · Most popular choice', popular: true },
-  { id: 4, icon: '🫙', weight: '500g', name: 'Family Pack', price: 1100, note: '~250 cups · For the whole family', popular: false },
-  { id: 5, icon: '🏺', weight: '750g', name: 'Estate Pack', price: 1580, note: '~375 cups · Value for regulars', popular: false },
-  { id: 6, icon: '🏺', weight: '1kg', name: 'Harvest Pack', price: 1999, note: '~500 cups · Best value per cup', popular: false },
-];
-
-// ── DATA HELPERS ──
-function getProducts() {
-  let p = JSON.parse(localStorage.getItem('ff_products'));
-  if (!p || p.length === 0) { localStorage.setItem('ff_products', JSON.stringify(DEFAULT_PRODUCTS)); p = DEFAULT_PRODUCTS; }
-  return p;
+// ── DATA HELPERS (Async) ──
+async function fetchAPI(endpoint, options = {}) {
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const headers = { ...options.headers };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    
+    const res = await fetch('/api' + endpoint, { ...options, headers });
+    return await res.json();
+  } catch(e) {
+    console.error('API Error:', e);
+    return null;
+  }
 }
-function saveProducts(p) { localStorage.setItem('ff_products', JSON.stringify(p)); }
-function getOrders() { return JSON.parse(localStorage.getItem('ff_orders')) || []; }
-function getFeedbacks() { return JSON.parse(localStorage.getItem('ff_feedbacks')) || []; }
-function getCustomers() { return JSON.parse(localStorage.getItem('ff_customers')) || []; }
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
@@ -51,29 +44,95 @@ function showLogin() {
 function showDashboard() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('dashboard').classList.add('active');
-  loadDashboardData();
   switchPage('overview');
 }
 
+let loginStep = 1;
+
 function initLogin() {
-  document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+  document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
     const pass = document.getElementById('loginPass').value;
+    const otp = document.getElementById('loginOtp').value.trim();
+    
     const errorEl = document.getElementById('loginError');
-    if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
-      localStorage.setItem(SESSION_KEY, 'active');
-      errorEl.classList.remove('show');
-      showDashboard();
-    } else {
-      errorEl.textContent = '❌ Invalid email or password. Please try again.';
-      errorEl.classList.add('show');
+    const submitBtn = document.getElementById('loginSubmitBtn');
+    
+    if (loginStep === 1) {
+      submitBtn.textContent = 'Verifying...';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass })
+        });
+        const data = await res.json();
+        
+        if (res.ok && data.success && data.step === 'otp') {
+          // Move to step 2
+          loginStep = 2;
+          document.getElementById('emailField').style.display = 'none';
+          document.getElementById('passField').style.display = 'none';
+          document.getElementById('otpField').style.display = 'block';
+          document.getElementById('loginOtp').setAttribute('required', 'true');
+          errorEl.classList.remove('show');
+          submitBtn.textContent = 'Verify OTP →';
+        } else {
+          errorEl.textContent = data.error || '❌ Invalid email or password.';
+          errorEl.classList.add('show');
+          submitBtn.textContent = 'Sign In →';
+        }
+      } catch(err) {
+        errorEl.textContent = '❌ Error connecting to server.';
+        errorEl.classList.add('show');
+        submitBtn.textContent = 'Sign In →';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    } else if (loginStep === 2) {
+      submitBtn.textContent = 'Verifying OTP...';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/admin/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp })
+        });
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          localStorage.setItem(SESSION_KEY, 'active');
+          localStorage.setItem(TOKEN_KEY, data.token);
+          errorEl.classList.remove('show');
+          showDashboard();
+          
+          // Reset for future
+          loginStep = 1;
+          document.getElementById('emailField').style.display = 'block';
+          document.getElementById('passField').style.display = 'block';
+          document.getElementById('otpField').style.display = 'none';
+        } else {
+          errorEl.textContent = data.error || '❌ Invalid OTP.';
+          errorEl.classList.add('show');
+        }
+      } catch(err) {
+        errorEl.textContent = '❌ Error connecting to server.';
+        errorEl.classList.add('show');
+      } finally {
+        if(loginStep === 2) submitBtn.textContent = 'Verify OTP →';
+        submitBtn.disabled = false;
+      }
     }
   });
 }
 
 function logout() {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(TOKEN_KEY);
   showLogin();
   document.getElementById('loginEmail').value = '';
   document.getElementById('loginPass').value = '';
@@ -87,22 +146,23 @@ function initSidebar() {
   document.getElementById('logoutBtn')?.addEventListener('click', logout);
 }
 
-function switchPage(page) {
+async function switchPage(page) {
   document.querySelectorAll('.sidebar-link[data-page]').forEach(l => l.classList.toggle('active', l.dataset.page === page));
   document.querySelectorAll('.admin-page').forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
-  if (page === 'overview') loadDashboardData();
-  if (page === 'products') renderProductsTable();
-  if (page === 'orders') renderOrders();
-  if (page === 'feedbacks') renderFeedbacks();
-  if (page === 'customers') renderCustomers();
+  if (page === 'overview') await loadDashboardData();
+  if (page === 'products') await renderProductsTable();
+  if (page === 'orders') await renderOrders();
+  if (page === 'feedbacks') await renderFeedbacks();
+  if (page === 'complaints') await renderComplaints();
+  if (page === 'customers') await renderCustomers();
 }
 
 // ── OVERVIEW ──
-function loadDashboardData() {
-  const products = getProducts();
-  const orders = getOrders();
-  const feedbacks = getFeedbacks();
-  const customers = getCustomers();
+async function loadDashboardData() {
+  const products = await fetchAPI('/products') || [];
+  const orders = await fetchAPI('/orders') || [];
+  const feedbacks = await fetchAPI('/feedbacks') || [];
+  const customers = await fetchAPI('/customers') || [];
 
   document.getElementById('statProducts').textContent = products.length;
   document.getElementById('statOrders').textContent = orders.length;
@@ -116,11 +176,15 @@ function loadDashboardData() {
   if (orderBadge) { orderBadge.textContent = orders.length; orderBadge.style.display = orders.length > 0 ? 'inline' : 'none'; }
   const feedbackBadge = document.getElementById('feedbacksBadge');
   if (feedbackBadge) { feedbackBadge.textContent = feedbacks.length; feedbackBadge.style.display = feedbacks.length > 0 ? 'inline' : 'none'; }
+  
+  const complaintsCount = orders.filter(o => o.complaint).length;
+  const complaintBadge = document.getElementById('complaintsBadge');
+  if (complaintBadge) { complaintBadge.textContent = complaintsCount; complaintBadge.style.display = complaintsCount > 0 ? 'inline' : 'none'; }
 }
 
 // ── PRODUCTS TABLE ──
-function renderProductsTable() {
-  const products = getProducts();
+async function renderProductsTable() {
+  const products = await fetchAPI('/products') || [];
   const tbody = document.getElementById('productsBody');
   if (!tbody) return;
   if (products.length === 0) {
@@ -129,13 +193,12 @@ function renderProductsTable() {
   }
   tbody.innerHTML = products.map(p => `
     <tr>
-      <td><span class="table-icon">${p.icon}</span></td>
+      <td><img src="${p.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" /></td>
       <td style="font-weight:600; color:var(--white);">${p.weight} ${p.name}</td>
       <td style="color:var(--gold); font-weight:600;">₹${p.price.toLocaleString('en-IN')}</td>
       <td style="font-size:12px; color:rgba(228,237,231,0.4); max-width:200px;">${p.note}</td>
       <td>${p.popular ? '<span class="table-badge badge-popular">⭐ Popular</span>' : '<span class="table-badge badge-new">Standard</span>'}</td>
       <td>
-        <button class="btn-edit" onclick="editProduct(${p.id})">Edit</button>
         <button class="btn-delete" onclick="deleteProduct(${p.id})">Delete</button>
       </td>
     </tr>
@@ -143,83 +206,86 @@ function renderProductsTable() {
 }
 
 // ── PRODUCT MODAL ──
-let editingProductId = null;
 function initProductModal() {
-  document.getElementById('addProductBtn')?.addEventListener('click', () => openProductModal());
+  document.getElementById('addProductBtn')?.addEventListener('click', openProductModal);
   document.getElementById('modalClose')?.addEventListener('click', closeProductModal);
   document.getElementById('modalCancel')?.addEventListener('click', closeProductModal);
   document.getElementById('productForm')?.addEventListener('submit', saveProduct);
   document.getElementById('productModal')?.addEventListener('click', (e) => { if (e.target.id === 'productModal') closeProductModal(); });
 }
 
-function openProductModal(product = null) {
+function openProductModal() {
   const modal = document.getElementById('productModal');
   const title = document.getElementById('modalTitle');
-  if (product) {
-    editingProductId = product.id;
-    title.textContent = 'Edit Product';
-    document.getElementById('pIcon').value = product.icon;
-    document.getElementById('pWeight').value = product.weight;
-    document.getElementById('pName').value = product.name;
-    document.getElementById('pPrice').value = product.price;
-    document.getElementById('pNote').value = product.note;
-    document.getElementById('pPopular').value = product.popular ? 'yes' : 'no';
-  } else {
-    editingProductId = null;
-    title.textContent = 'Add New Product';
-    document.getElementById('productForm').reset();
-    document.getElementById('pIcon').value = '🫙';
-  }
+  title.textContent = 'Add New Product';
+  document.getElementById('productForm').reset();
   modal.classList.add('open');
 }
 
 function closeProductModal() {
   document.getElementById('productModal').classList.remove('open');
-  editingProductId = null;
 }
 
-function saveProduct(e) {
+async function saveProduct(e) {
   e.preventDefault();
-  const products = getProducts();
-  const data = {
-    icon: document.getElementById('pIcon').value || '🫙',
-    weight: document.getElementById('pWeight').value.trim(),
-    name: document.getElementById('pName').value.trim(),
-    price: parseInt(document.getElementById('pPrice').value) || 0,
-    note: document.getElementById('pNote').value.trim(),
-    popular: document.getElementById('pPopular').value === 'yes',
-  };
-  if (!data.weight || !data.name || !data.price) { alert('Please fill in Weight, Name, and Price.'); return; }
-
-  if (editingProductId) {
-    const idx = products.findIndex(p => p.id === editingProductId);
-    if (idx !== -1) products[idx] = { ...products[idx], ...data };
+  
+  const fileInput = document.getElementById('pImage');
+  const formData = new FormData();
+  if (fileInput.files.length > 0) {
+    formData.append('image', fileInput.files[0]);
   } else {
-    const maxId = products.reduce((max, p) => Math.max(max, p.id), 0);
-    products.push({ id: maxId + 1, ...data });
+    alert('Please upload an image.');
+    return;
   }
-  saveProducts(products);
-  closeProductModal();
-  renderProductsTable();
-  loadDashboardData();
+  
+  formData.append('weight', document.getElementById('pWeight').value.trim());
+  formData.append('name', document.getElementById('pName').value.trim());
+  formData.append('price', document.getElementById('pPrice').value);
+  formData.append('note', document.getElementById('pNote').value.trim());
+  formData.append('popular', document.getElementById('pPopular').value === 'yes');
+  
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.textContent = 'Saving...';
+  submitBtn.disabled = true;
+
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    
+    if (res.ok) {
+      closeProductModal();
+      await renderProductsTable();
+      await loadDashboardData();
+    } else {
+      alert('Failed to save product');
+    }
+  } catch(err) {
+    console.error(err);
+    alert('Error saving product');
+  } finally {
+    submitBtn.textContent = 'Save Product';
+    submitBtn.disabled = false;
+  }
 }
 
-function editProduct(id) {
-  const p = getProducts().find(p => p.id === id);
-  if (p) openProductModal(p);
-}
-
-function deleteProduct(id) {
+async function deleteProduct(id) {
   if (!confirm('Are you sure you want to delete this product?')) return;
-  let products = getProducts().filter(p => p.id !== id);
-  saveProducts(products);
-  renderProductsTable();
-  loadDashboardData();
+  try {
+    await fetchAPI('/products/' + id, { method: 'DELETE' });
+    await renderProductsTable();
+    await loadDashboardData();
+  } catch(e) {
+    console.error(e);
+  }
 }
 
-// ── ORDERS (with customer info) ──
-function renderOrders() {
-  const orders = getOrders();
+// ── ORDERS ──
+async function renderOrders() {
+  const orders = await fetchAPI('/orders') || [];
   const container = document.getElementById('ordersContainer');
   if (!container) return;
   if (orders.length === 0) {
@@ -238,10 +304,37 @@ function renderOrders() {
       `;
     }
 
+    const statusOptions = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+    const statusSelect = `
+      <select onchange="updateOrderStatus('${o.id}', this.value)" style="margin-left: 10px; padding: 4px; border-radius: 4px; border: 1px solid var(--gold); background: var(--black); color: var(--gold);">
+        ${statusOptions.map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+    `;
+
+    let feedbackHtml = '';
+    if (o.review || o.complaint) {
+      feedbackHtml += `<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">`;
+      if (o.review) {
+        feedbackHtml += `<div style="margin-bottom: 8px; font-size: 13px;">
+          <strong style="color: var(--gold);">⭐ Review (${o.review.rating}/5):</strong> 
+          <span style="color: var(--white);">${o.review.comment}</span> 
+          <span style="color: var(--mist); font-size: 11px;">(${o.review.date})</span>
+        </div>`;
+      }
+      if (o.complaint) {
+        feedbackHtml += `<div style="font-size: 13px;">
+          <strong style="color: #e74c3c;">⚠️ Complaint:</strong> 
+          <span style="color: var(--white);">${o.complaint.text}</span> 
+          <span style="color: var(--mist); font-size: 11px;">(${o.complaint.date})</span>
+        </div>`;
+      }
+      feedbackHtml += `</div>`;
+    }
+
     return `
     <div class="order-card">
       <div class="order-header">
-        <span class="order-id">${o.id}</span>
+        <div><span class="order-id">${o.id}</span> ${statusSelect}</div>
         <span class="order-date">${o.date}</span>
       </div>
       <div class="order-items">${o.items.join(' · ')}</div>
@@ -252,13 +345,37 @@ function renderOrders() {
         </div>
       ` : ''}
       ${shippingHtml}
+      ${feedbackHtml}
     </div>
   `}).join('');
 }
 
+async function updateOrderStatus(orderId, newStatus) {
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const res = await fetch('/api/orders/' + orderId + '/status', {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status: newStatus })
+    });
+    if (res.ok) {
+      alert('Order status updated successfully!');
+      await loadDashboardData();
+    } else {
+      alert('Failed to update status.');
+    }
+  } catch(e) {
+    console.error(e);
+    alert('Error updating status.');
+  }
+}
+
 // ── FEEDBACKS ──
-function renderFeedbacks() {
-  const feedbacks = getFeedbacks();
+async function renderFeedbacks() {
+  const feedbacks = await fetchAPI('/feedbacks') || [];
   const container = document.getElementById('feedbacksContainer');
   if (!container) return;
   if (feedbacks.length === 0) {
@@ -279,9 +396,35 @@ function renderFeedbacks() {
   `).join('');
 }
 
+// ── COMPLAINTS ──
+async function renderComplaints() {
+  const orders = await fetchAPI('/orders') || [];
+  const container = document.getElementById('complaintsContainer');
+  if (!container) return;
+  const complaints = orders.filter(o => o.complaint);
+  
+  if (complaints.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon" style="color:var(--mist);">✅</div><p>No complaints reported! Everything is smooth.</p></div>`;
+    return;
+  }
+  container.innerHTML = complaints.map(o => `
+    <div class="feedback-card" style="border-left: 4px solid #e74c3c;">
+      <div class="feedback-meta">
+        <span>👤 <strong>${o.customer ? o.customer.name : 'Unknown'}</strong></span>
+        <span>📞 ${o.customer ? o.customer.phone : 'Unknown'}</span>
+        <span>📦 Order ID: ${o.id}</span>
+        <span>🕐 ${o.complaint.date}</span>
+      </div>
+      <div class="feedback-message" style="color: #e74c3c; font-weight: 500;">
+        " ${o.complaint.text} "
+      </div>
+    </div>
+  `).join('');
+}
+
 // ── CUSTOMERS ──
-function renderCustomers() {
-  const customers = getCustomers();
+async function renderCustomers() {
+  const customers = await fetchAPI('/customers') || [];
   const container = document.getElementById('customersContainer');
   if (!container) return;
   if (customers.length === 0) {
@@ -299,3 +442,4 @@ function renderCustomers() {
     </div>
   `).join('');
 }
+
