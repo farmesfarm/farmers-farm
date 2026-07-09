@@ -2,11 +2,18 @@ const express = require('express');
 const router = express.Router();
 const Razorpay = require('razorpay');
 const nodemailer = require('nodemailer');
-
-// Mock Database (Since Firebase isn't connected yet)
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+
+// Initialize Firebase Admin
+const admin = require('firebase-admin');
+const serviceAccount = require('../serviceAccountKey.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+const db = admin.firestore();
 
 // Setup Multer for image uploads
 const storage = multer.diskStorage({
@@ -23,13 +30,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Mock Database (Since Firebase isn't connected yet)
-let products = [];
-let orders = [];
-let customers = [];
-let feedbacks = [];
-
-// Initialize Razorpay (Dummy keys for now until provided)
+// Initialize Razorpay
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_dummy',
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_secret',
@@ -46,78 +47,35 @@ const verifyAdmin = (req, res, next) => {
   }
 };
 
-// --- OTP STORAGE (In-memory) ---
-const otpStorage = new Map(); // Stores: email => { otp, expiresAt }
+// --- ADMIN LOGIN (Email only, no password, no OTP) ---
+const ADMIN_EMAIL = 'admin@farmersfarm.in';
 
-router.post('/admin/login', async (req, res) => {
-  const { email, password } = req.body;
+router.post('/admin/login', (req, res) => {
+  const { email } = req.body;
 
-  // Yahan aap 2-4 ya jitne chahein admin accounts add kar sakte hain
-  const validAdmins = [
-    { email: process.env.ADMIN_EMAIL || 'admin@farmersfarm.in', password: process.env.ADMIN_PASS || 'farm@2026' },
-    { email: 'akash@farmersfarm.in', password: 'akashpassword' },
-    { email: 'ansh@farmersfarm.in', password: '[ansh]' }
-  ];
-
-  // Check if entered email and password matches any in our list
-  const matchedAdmin = validAdmins.find(admin => admin.email === email && admin.password === password);
-
-  if (matchedAdmin) {
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
-    
-    otpStorage.set(email, { otp, expiresAt });
-    
-    // Configure Email Transporter
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    try {
-      if(process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_gmail@gmail.com') {
-        await transporter.sendMail({
-          from: `"Farmers Farm Admin" <${process.env.EMAIL_USER}>`,
-          to: email,
-          subject: 'Your Admin Login OTP',
-          text: `Your OTP for Admin Dashboard is: ${otp}. It is valid for 10 minutes.`,
-          html: `<h3>Admin Login OTP</h3><p>Your OTP for Farmers Farm Admin Dashboard is: <strong>${otp}</strong>.</p><p>It is valid for 10 minutes.</p>`
-        });
-      } else {
-        // If email is not configured, we print the OTP to the console for testing
-        console.log(`\n\n[DEVELOPMENT MODE] OTP for ${email} is: ${otp}\n\n`);
-      }
-      res.json({ success: true, step: 'otp' });
-    } catch (err) {
-      console.error('Email sending failed:', err);
-      res.status(500).json({ error: 'Failed to send OTP email. Check terminal for DEV mode OTP.' });
-    }
+  if (email && email.trim().toLowerCase() === ADMIN_EMAIL) {
+    const token = process.env.ADMIN_TOKEN_SECRET || 'ff_super_secret_token_2026';
+    res.json({ success: true, token });
   } else {
-    res.status(401).json({ error: 'Invalid admin credentials' });
+    res.status(401).json({ error: 'Access denied.' });
   }
 });
 
-// --- ADMIN VERIFY OTP ---
 router.post('/admin/verify-otp', (req, res) => {
   const { email, otp } = req.body;
   const storedData = otpStorage.get(email);
-  
+
   if (!storedData) {
     return res.status(400).json({ error: 'No OTP requested or session expired.' });
   }
-  
+
   if (Date.now() > storedData.expiresAt) {
     otpStorage.delete(email);
     return res.status(400).json({ error: 'OTP has expired. Please login again.' });
   }
-  
+
   if (storedData.otp === otp) {
-    // Success - OTP matched!
-    otpStorage.delete(email); // Clear OTP after success
+    otpStorage.delete(email);
     const token = process.env.ADMIN_TOKEN_SECRET || 'ff_super_secret_token_2026';
     res.json({ success: true, token });
   } else {
@@ -126,17 +84,24 @@ router.post('/admin/verify-otp', (req, res) => {
 });
 
 // --- PRODUCTS ---
-router.get('/products', (req, res) => {
-  res.json(products);
+router.get('/products', async (req, res) => {
+  try {
+    const snapshot = await db.collection('products').get();
+    const products = [];
+    snapshot.forEach(doc => {
+      products.push({ id: doc.id, ...doc.data() });
+    });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Admin: Add Product
-router.post('/products', verifyAdmin, upload.single('image'), (req, res) => {
+router.post('/products', verifyAdmin, upload.single('image'), async (req, res) => {
   const { name, weight, price, note, popular } = req.body;
   const image = req.file ? `/images/uploads/${req.file.filename}` : '/images/pouch.png';
 
   const newProduct = {
-    id: Date.now(),
     name,
     weight,
     price: Number(price),
@@ -145,106 +110,199 @@ router.post('/products', verifyAdmin, upload.single('image'), (req, res) => {
     image
   };
 
-  products.push(newProduct);
-  res.status(201).json({ success: true, product: newProduct });
+  try {
+    const docRef = await db.collection('products').add(newProduct);
+    res.status(201).json({ success: true, product: { id: docRef.id, ...newProduct } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Admin: Delete Product
-router.delete('/products/:id', verifyAdmin, (req, res) => {
-  const id = parseInt(req.params.id);
-  products = products.filter(p => p.id !== id);
-  res.json({ success: true });
+router.delete('/products/:id', verifyAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    await db.collection('products').doc(id).delete();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
-
-// Duplicate routes removed
 
 // --- ORDERS ---
-router.get('/orders', (req, res) => {
-  res.json(orders);
+router.get('/orders', async (req, res) => {
+  try {
+    // Return newest orders first
+    const snapshot = await db.collection('orders').orderBy('createdAt', 'desc').get();
+    const orders = [];
+    snapshot.forEach(doc => {
+      orders.push({ id: doc.id, ...doc.data() });
+    });
+    res.json(orders);
+  } catch (error) {
+    try {
+      const snapshot = await db.collection('orders').get();
+      const orders = [];
+      snapshot.forEach(doc => {
+        orders.push({ id: doc.id, ...doc.data() });
+      });
+      res.json(orders);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
 });
 
-router.post('/orders', (req, res) => {
+router.post('/orders', async (req, res) => {
   const order = req.body;
-  order.status = 'Pending'; // Default status
-  orders.unshift(order);
-  res.json({ success: true, order });
+  order.status = 'Pending';
+  order.createdAt = admin.firestore.FieldValue.serverTimestamp();
+
+  try {
+    const docRef = await db.collection('orders').add(order);
+    res.json({ success: true, order: { id: docRef.id, ...order } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-router.put('/orders/:id/status', verifyAdmin, (req, res) => {
+router.put('/orders/:id/status', verifyAdmin, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  const order = orders.find(o => o.id === id);
-  if (order) {
-    order.status = status;
-    res.json({ success: true, order });
-  } else {
-    res.status(404).json({ error: 'Order not found' });
+
+  try {
+    await db.collection('orders').doc(id).update({ status });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
-router.get('/orders/customer/:email', (req, res) => {
+router.get('/orders/customer/:email', async (req, res) => {
   const { email } = req.params;
-  const customerOrders = orders.filter(o => o.customer && o.customer.email === email);
-  res.json(customerOrders);
+  try {
+    const snapshot = await db.collection('orders').where('customer.email', '==', email).get();
+    const orders = [];
+    snapshot.forEach(doc => {
+      orders.push({ id: doc.id, ...doc.data() });
+    });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-router.post('/orders/:id/review', (req, res) => {
+router.post('/orders/:id/review', async (req, res) => {
   const { id } = req.params;
   const { rating, comment } = req.body;
-  const order = orders.find(o => o.id === id);
-  if (order) {
-    order.review = { rating, comment, date: new Date().toLocaleString('en-IN') };
-    res.json({ success: true, order });
-  } else {
-    res.status(404).json({ error: 'Order not found' });
+  try {
+    await db.collection('orders').doc(id).update({
+      review: { rating, comment, date: new Date().toLocaleString('en-IN') }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
-router.post('/orders/:id/complaint', (req, res) => {
+router.post('/orders/:id/complaint', async (req, res) => {
   const { id } = req.params;
   const { text } = req.body;
-  const order = orders.find(o => o.id === id);
-  if (order) {
-    order.complaint = { text, date: new Date().toLocaleString('en-IN') };
-    res.json({ success: true, order });
-  } else {
-    res.status(404).json({ error: 'Order not found' });
+  try {
+    await db.collection('orders').doc(id).update({
+      complaint: { text, date: new Date().toLocaleString('en-IN') }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
 // --- CUSTOMERS ---
-router.get('/customers', (req, res) => {
-  res.json(customers);
-});
-
-router.post('/customers', (req, res) => {
-  const customer = req.body;
-  if (!customers.find(c => c.email === customer.email)) {
-    customers.push(customer);
-    res.json({ success: true, customer });
-  } else {
-    res.status(400).json({ error: 'Customer already exists' });
+router.get('/customers', async (req, res) => {
+  try {
+    const snapshot = await db.collection('customers').get();
+    const customers = [];
+    snapshot.forEach(doc => {
+      customers.push({ id: doc.id, ...doc.data() });
+    });
+    res.json(customers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
-router.post('/customers/login', (req, res) => {
+router.post('/customers', async (req, res) => {
+  const customer = req.body;
+  try {
+    // Check if customer exists
+    const snapshot = await db.collection('customers').where('email', '==', customer.email).get();
+    if (!snapshot.empty) {
+      return res.status(400).json({ error: 'Customer already exists' });
+    }
+
+    customer.createdAt = admin.firestore.FieldValue.serverTimestamp();
+    const docRef = await db.collection('customers').add(customer);
+    res.json({ success: true, customer: { id: docRef.id, ...customer } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/customers/login', async (req, res) => {
   const { email, password } = req.body;
-  const customer = customers.find(c => c.email === email && c.password === password);
-  if (customer) {
-    res.json({ success: true, customer });
-  } else {
-    res.status(401).json({ error: 'Invalid credentials' });
+  try {
+    const snapshot = await db.collection('customers')
+      .where('email', '==', email)
+      .where('password', '==', password)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    let customerData;
+    snapshot.forEach(doc => {
+      customerData = { id: doc.id, ...doc.data() };
+    });
+
+    res.json({ success: true, customer: customerData });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
 // --- FEEDBACKS ---
-router.get('/feedbacks', (req, res) => {
-  res.json(feedbacks);
+router.get('/feedbacks', async (req, res) => {
+  try {
+    const snapshot = await db.collection('feedbacks').orderBy('createdAt', 'desc').get();
+    const feedbacks = [];
+    snapshot.forEach(doc => {
+      feedbacks.push({ id: doc.id, ...doc.data() });
+    });
+    res.json(feedbacks);
+  } catch (error) {
+    try {
+      const snapshot = await db.collection('feedbacks').get();
+      const feedbacks = [];
+      snapshot.forEach(doc => {
+        feedbacks.push({ id: doc.id, ...doc.data() });
+      });
+      res.json(feedbacks);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
 });
 
-router.post('/feedbacks', (req, res) => {
-  feedbacks.unshift(req.body);
-  res.json({ success: true });
+router.post('/feedbacks', async (req, res) => {
+  const feedback = req.body;
+  feedback.createdAt = admin.firestore.FieldValue.serverTimestamp();
+  try {
+    await db.collection('feedbacks').add(feedback);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // --- RAZORPAY PAYMENTS ---
@@ -275,15 +333,6 @@ router.post('/payment/create', async (req, res) => {
 });
 
 router.post('/payment/verify', (req, res) => {
-  // In a real app, you would verify the signature here using crypto
-  // const crypto = require('crypto');
-  // const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-  // const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-  // hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
-  // const generated_signature = hmac.digest('hex');
-  // if (generated_signature === razorpay_signature) { res.json({ success: true }) }
-
-  // Mock success for now
   res.json({ success: true });
 });
 

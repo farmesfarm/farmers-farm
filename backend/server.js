@@ -8,9 +8,26 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ── CORS – only allow our domain (and localhost for dev)
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
+
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // API Routes
@@ -23,6 +40,16 @@ app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err.message);
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'CORS: Origin not allowed.' });
+  }
+  res.status(500).json({ error: 'Internal server error.' });
+});
+
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`🌐 CORS allowed: ${allowedOrigins.join(', ')}`);
 });

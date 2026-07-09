@@ -12,7 +12,7 @@
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍵</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
 
@@ -266,13 +266,22 @@
 <div class="checkout-overlay" id="addressOverlay">
   <div class="checkout-modal" style="text-align:left;">
     <button class="auth-modal-close" onclick="closeAddressModal()">✕</button>
-    <div class="auth-title" style="margin-bottom:8px;">Delivery Details</div>
-    <div class="auth-subtitle" style="margin-bottom:24px;">Where should we deliver your tea?</div>
-    
+    <div class="auth-title" style="margin-bottom:4px;">Delivery Details</div>
+    <div class="auth-subtitle" style="margin-bottom:12px;">Where should we deliver your tea?</div>
+
+    <!-- Payment Badge -->
+    <div style="display:flex; align-items:center; gap:8px; background:rgba(45,90,39,0.2); border:1px solid rgba(45,90,39,0.5); border-radius:8px; padding:10px 14px; margin-bottom:18px;">
+      <span style="font-size:20px;">📦</span>
+      <div>
+        <div style="font-size:13px; font-weight:700; color:var(--gold);">Cash on Delivery</div>
+        <div style="font-size:11px; color:var(--mist); opacity:0.8;">Pay when your order arrives at your doorstep</div>
+      </div>
+    </div>
+
     <button class="location-btn" id="getLocationBtn" type="button">
       <span class="loc-icon">📍</span> Use My Current Location
     </button>
-    
+
     <form id="checkoutAddressForm" class="auth-form active">
       <div class="auth-field">
         <label>Full Address</label>
@@ -285,12 +294,12 @@
         </div>
         <div class="auth-field" style="margin-bottom:0;">
           <label>PIN Code</label>
-          <input type="text" id="checkoutPin" placeholder="PIN" required>
+          <input type="text" id="checkoutPin" placeholder="6-digit PIN" maxlength="6" pattern="\d{6}" required>
         </div>
       </div>
       <input type="hidden" id="checkoutLat">
       <input type="hidden" id="checkoutLng">
-      <button type="submit" class="auth-btn">Confirm Order →</button>
+      <button type="submit" class="auth-btn">📦 Place Order (COD) →</button>
     </form>
   </div>
 </div>

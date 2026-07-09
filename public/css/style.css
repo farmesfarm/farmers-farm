@@ -348,13 +348,14 @@ section { padding: 88px 48px; }
   height: 380px;
   box-shadow: 0 20px 60px rgba(27,58,45,0.3);
 }
-.about-visual-inner { text-align: center; padding: 40px; }
-.big-leaf { 
-  font-size: 120px; 
-  display: inline-block; 
+.about-visual-inner {
+  text-align: center; padding: 40px; }
+.big-leaf {
+  font-size: 120px;
+  display: inline-block;
   position: relative;
-  filter: drop-shadow(0 4px 20px rgba(201,168,76,0.3)); 
-  animation: teaBrew 4s ease-in-out infinite; 
+  filter: drop-shadow(0 4px 20px rgba(201,168,76,0.3));
+  animation: teaBrew 4s ease-in-out infinite;
 }
 .big-leaf::before, .big-leaf::after {
   content: '';

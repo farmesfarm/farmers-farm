@@ -53,79 +53,35 @@ function initLogin() {
   document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
-    const pass = document.getElementById('loginPass').value;
-    const otp = document.getElementById('loginOtp').value.trim();
-    
     const errorEl = document.getElementById('loginError');
     const submitBtn = document.getElementById('loginSubmitBtn');
-    
-    if (loginStep === 1) {
-      submitBtn.textContent = 'Verifying...';
-      submitBtn.disabled = true;
 
-      try {
-        const res = await fetch('/api/admin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password: pass })
-        });
-        const data = await res.json();
-        
-        if (res.ok && data.success && data.step === 'otp') {
-          // Move to step 2
-          loginStep = 2;
-          document.getElementById('emailField').style.display = 'none';
-          document.getElementById('passField').style.display = 'none';
-          document.getElementById('otpField').style.display = 'block';
-          document.getElementById('loginOtp').setAttribute('required', 'true');
-          errorEl.classList.remove('show');
-          submitBtn.textContent = 'Verify OTP →';
-        } else {
-          errorEl.textContent = data.error || '❌ Invalid email or password.';
-          errorEl.classList.add('show');
-          submitBtn.textContent = 'Sign In →';
-        }
-      } catch(err) {
-        errorEl.textContent = '❌ Error connecting to server.';
-        errorEl.classList.add('show');
-        submitBtn.textContent = 'Sign In →';
-      } finally {
-        submitBtn.disabled = false;
-      }
-    } else if (loginStep === 2) {
-      submitBtn.textContent = 'Verifying OTP...';
-      submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing In...';
+    submitBtn.disabled = true;
 
-      try {
-        const res = await fetch('/api/admin/verify-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, otp })
-        });
-        const data = await res.json();
-        
-        if (res.ok && data.success) {
-          localStorage.setItem(SESSION_KEY, 'active');
-          localStorage.setItem(TOKEN_KEY, data.token);
-          errorEl.classList.remove('show');
-          showDashboard();
-          
-          // Reset for future
-          loginStep = 1;
-          document.getElementById('emailField').style.display = 'block';
-          document.getElementById('passField').style.display = 'block';
-          document.getElementById('otpField').style.display = 'none';
-        } else {
-          errorEl.textContent = data.error || '❌ Invalid OTP.';
-          errorEl.classList.add('show');
-        }
-      } catch(err) {
-        errorEl.textContent = '❌ Error connecting to server.';
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success && data.token) {
+        localStorage.setItem(SESSION_KEY, 'active');
+        localStorage.setItem(TOKEN_KEY, data.token);
+        errorEl.classList.remove('show');
+        showDashboard();
+      } else {
+        errorEl.textContent = data.error || '❌ Access denied.';
         errorEl.classList.add('show');
-      } finally {
-        if(loginStep === 2) submitBtn.textContent = 'Verify OTP →';
-        submitBtn.disabled = false;
       }
+    } catch(err) {
+      errorEl.textContent = '❌ Error connecting to server.';
+      errorEl.classList.add('show');
+    } finally {
+      submitBtn.textContent = 'Sign In →';
+      submitBtn.disabled = false;
     }
   });
 }

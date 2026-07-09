@@ -120,7 +120,7 @@ function renderProducts() {
   const products = getProducts();
   grid.innerHTML = '';
   
-  if (products.length === 0) {
+  if (!Array.isArray(products) || products.length === 0) {
     grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 60px; color: var(--gold); font-size: 20px;">Premium products are brewing! Check back later.</div>';
     return;
   }
@@ -290,43 +290,80 @@ document.getElementById('getLocationBtn')?.addEventListener('click', () => {
   }
 });
 
-// Finalize Order
+// Finalize Order – COD / Online Payment
 document.getElementById('checkoutAddressForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
+
   const customer = getLoggedInCustomer();
   if (!customer || cart.length === 0) return;
 
   const address = document.getElementById('checkoutAddress').value.trim();
-  const city = document.getElementById('checkoutCity').value.trim();
-  const pin = document.getElementById('checkoutPin').value.trim();
-  const lat = document.getElementById('checkoutLat').value;
-  const lng = document.getElementById('checkoutLng').value;
+  const city    = document.getElementById('checkoutCity').value.trim();
+  const pin     = document.getElementById('checkoutPin').value.trim();
+  const lat     = document.getElementById('checkoutLat').value;
+  const lng     = document.getElementById('checkoutLng').value;
+
+  if (!address || !city || !pin) {
+    showToast('⚠️ Please fill in all address fields.');
+    return;
+  }
+  if (!/^\d{6}$/.test(pin)) {
+    showToast('⚠️ Please enter a valid 6-digit PIN code.');
+    return;
+  }
 
   const totalPrice = cart.reduce((sum, c) => sum + (c.price * c.qty), 0);
 
   const btn = e.target.querySelector('button[type="submit"]');
-  btn.innerHTML = 'Processing...';
+  btn.innerHTML = '⏳ Placing Order...';
   btn.disabled = true;
 
   try {
+    // Step 1: Get payment mode from server
+    const payRes = await fetch('/api/payment/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: totalPrice })
+    });
+    const payData = await payRes.json();
+
+    if (!payRes.ok || !payData.success) {
+      throw new Error(payData.error || 'Payment initiation failed.');
+    }
+
+    // Step 2: Verify (COD always passes, Razorpay sends real data)
+    const verifyRes = await fetch('/api/payment/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: payData.mode })
+    });
+    const verifyData = await verifyRes.json();
+
+    if (!verifyRes.ok || !verifyData.success) {
+      throw new Error('Payment verification failed.');
+    }
+
+    // Step 3: Save order to Firestore
     const order = {
       id: 'ORD-' + Date.now().toString(36).toUpperCase(),
       date: new Date().toLocaleString('en-IN'),
       items: cart.map(c => `${c.weight} ${c.name} x${c.qty}`),
       total: totalPrice,
+      paymentMethod: payData.mode === 'online' ? 'Online' : 'COD',
+      paymentId: verifyData.paymentId || null,
       customer: { name: customer.name, email: customer.email, phone: customer.phone },
       shipping: { address, city, pin, lat, lng }
     };
-    
+
     await saveOrder(order);
     cart = [];
     saveCart(cart);
     updateCartUI();
     closeAddressModal();
     showCheckoutSuccess(order);
-  } catch(err) {
-    showToast('⚠️ Error placing order.');
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ ' + (err.message || 'Error placing order. Please try again.'));
     btn.innerHTML = 'Confirm Order →';
     btn.disabled = false;
   }
@@ -396,8 +433,8 @@ function initCustomerAuth() {
       showAuthError('Please fill in all fields.');
       return;
     }
-    if (pass.length < 4) {
-      showAuthError('Password must be at least 4 characters.');
+    if (pass.length < 6) {
+      showAuthError('Password must be at least 6 characters.');
       return;
     }
 
