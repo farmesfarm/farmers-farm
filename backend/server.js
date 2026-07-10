@@ -8,20 +8,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ── CORS – only allow our domain (and localhost for dev)
-const allowedOrigins = [
-  process.env.CORS_ORIGIN,
-  'http://localhost:3000',
-  'http://127.0.0.1:3000'
-].filter(Boolean);
-
+// ── CORS – allow any origin dynamically
 app.use(cors({
-  origin: (origin, callback) => {
-    // allow requests with no origin (mobile apps, curl, server-to-server)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: true, // Automatically reflects the request origin
   credentials: true
 }));
 
