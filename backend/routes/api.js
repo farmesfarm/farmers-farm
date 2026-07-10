@@ -5,13 +5,38 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const { OAuth2Client } = require('google-auth-library');
+
+// OTP Storage (Email -> { otp, expiresAt })
+const otpStorage = new Map();
+
+// NodeMailer Setup
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Google Auth Setup
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID_HERE';
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+
 
 // Initialize Firebase Admin
 const admin = require('firebase-admin');
-const serviceAccount = require('../serviceAccountKey.json');
+const { cert } = require('firebase-admin/app');
+
+let serviceAccount;
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} else {
+  serviceAccount = require('../serviceAccountKey.json');
+}
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: cert(serviceAccount)
 });
 const db = admin.firestore();
 
@@ -47,17 +72,24 @@ const verifyAdmin = (req, res, next) => {
   }
 };
 
-// --- ADMIN LOGIN (Email only, no password, no OTP) ---
-const ADMIN_EMAIL = 'admin@farmersfarm.in';
+// --- ADMIN LOGIN (Email + Password) ---
+const ADMIN_CREDENTIALS = [
+  { email: (process.env.ADMIN_EMAIL || 'admin@farmersfarm.in').toLowerCase(), pass: process.env.ADMIN_PASS },
+  { email: (process.env.ADMIN_EMAIL_2 || '').toLowerCase(), pass: process.env.ADMIN_PASS_2 },
+];
 
 router.post('/admin/login', (req, res) => {
-  const { email } = req.body;
+  const { email, password } = req.body;
+  const inputEmail = (email || '').trim().toLowerCase();
+  const inputPass = (password || '').trim();
 
-  if (email && email.trim().toLowerCase() === ADMIN_EMAIL) {
+  const match = ADMIN_CREDENTIALS.find(c => c.email && c.email === inputEmail && c.pass && c.pass === inputPass);
+
+  if (match) {
     const token = process.env.ADMIN_TOKEN_SECRET || 'ff_super_secret_token_2026';
     res.json({ success: true, token });
   } else {
-    res.status(401).json({ error: 'Access denied.' });
+    res.status(401).json({ error: 'Access denied. Invalid email or password.' });
   }
 });
 
@@ -248,26 +280,81 @@ router.post('/customers', async (req, res) => {
   }
 });
 
-router.post('/customers/login', async (req, res) => {
-  const { email, password } = req.body;
+// --- CUSTOMER AUTH: OTP ---
+router.post('/customers/request-otp', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+  
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStorage.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
+
   try {
-    const snapshot = await db.collection('customers')
-      .where('email', '==', email)
-      .where('password', '==', password)
-      .get();
-
-    if (snapshot.empty) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    let customerData;
-    snapshot.forEach(doc => {
-      customerData = { id: doc.id, ...doc.data() };
+    await transporter.sendMail({
+      from: `"Farmers Farm" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Your Login OTP for Farmers Farm',
+      html: `<h3>Welcome to Farmers Farm!</h3><p>Your OTP for login is: <strong style="font-size:24px;">${otp}</strong></p><p>This OTP is valid for 10 minutes.</p>`
     });
+    res.json({ success: true, message: 'OTP sent successfully' });
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ error: 'Failed to send OTP email' });
+  }
+});
 
+router.post('/customers/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+  const storedData = otpStorage.get(email.toLowerCase());
+
+  if (!storedData || Date.now() > storedData.expiresAt || storedData.otp !== otp) {
+    return res.status(401).json({ error: 'Invalid or expired OTP' });
+  }
+
+  otpStorage.delete(email.toLowerCase());
+
+  try {
+    let customerData;
+    const snapshot = await db.collection('customers').where('email', '==', email.toLowerCase()).get();
+    
+    if (snapshot.empty) {
+      // Create new customer if they don't exist
+      const newCustomer = { email: email.toLowerCase(), name: email.split('@')[0], createdAt: admin.firestore.FieldValue.serverTimestamp() };
+      const docRef = await db.collection('customers').add(newCustomer);
+      customerData = { id: docRef.id, ...newCustomer };
+    } else {
+      snapshot.forEach(doc => { customerData = { id: docRef.id, ...doc.data() }; });
+    }
     res.json({ success: true, customer: customerData });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// --- CUSTOMER AUTH: GOOGLE LOGIN ---
+router.post('/customers/google-login', async (req, res) => {
+  const { credential } = req.body;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: GOOGLE_CLIENT_ID
+    });
+    const payload = ticket.getPayload();
+    const email = payload.email.toLowerCase();
+    const name = payload.name;
+
+    let customerData;
+    const snapshot = await db.collection('customers').where('email', '==', email).get();
+    if (snapshot.empty) {
+      const newCustomer = { email, name, createdAt: admin.firestore.FieldValue.serverTimestamp() };
+      const docRef = await db.collection('customers').add(newCustomer);
+      customerData = { id: docRef.id, ...newCustomer };
+    } else {
+      snapshot.forEach(doc => { customerData = { id: doc.id, ...doc.data() }; });
+    }
+    res.json({ success: true, customer: customerData });
+  } catch (error) {
+    console.error('Google Auth Error:', error);
+    res.status(401).json({ error: 'Google authentication failed' });
   }
 });
 

@@ -13,6 +13,8 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍵</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css?v=2">
+<!-- Google Identity Services for Google Login -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -247,9 +249,34 @@
     <div class="auth-error" id="authError"></div>
     <!-- LOGIN -->
     <form class="auth-form active" id="loginFormContainer">
-      <div class="auth-field"><label>Email</label><input type="email" id="clEmail" placeholder="your@email.com" required></div>
-      <div class="auth-field"><label>Password</label><input type="password" id="clPass" placeholder="Enter password" required></div>
-      <button type="submit" class="auth-btn" id="customerLoginForm">Sign In →</button>
+      <div id="otpStep1">
+        <div class="auth-field"><label>Email</label><input type="email" id="clEmail" placeholder="your@email.com" required></div>
+        <button type="button" class="auth-btn" id="sendOtpBtn">Send OTP →</button>
+      </div>
+      <div id="otpStep2" style="display:none;">
+        <div class="auth-field"><label>Enter OTP</label><input type="text" id="clOtp" placeholder="6-digit code"></div>
+        <button type="submit" class="auth-btn" id="customerLoginForm">Verify OTP & Login</button>
+      </div>
+      
+      <div style="text-align: center; margin: 15px 0; color: var(--mist);">OR</div>
+      
+      <!-- Google Sign In Button -->
+      <div id="g_id_onload"
+           data-client_id="YOUR_GOOGLE_CLIENT_ID_HERE"
+           data-context="use"
+           data-ux_mode="popup"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="outline"
+           data-text="continue_with"
+           data-size="large"
+           data-logo_alignment="center"
+           style="display: flex; justify-content: center; margin-bottom: 10px;">
+      </div>
     </form>
     <!-- SIGNUP -->
     <form class="auth-form" id="signupFormContainer">

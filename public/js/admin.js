@@ -53,6 +53,7 @@ function initLogin() {
   document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value.trim();
     const errorEl = document.getElementById('loginError');
     const submitBtn = document.getElementById('loginSubmitBtn');
 
@@ -63,7 +64,7 @@ function initLogin() {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
 
@@ -91,7 +92,8 @@ function logout() {
   localStorage.removeItem(TOKEN_KEY);
   showLogin();
   document.getElementById('loginEmail').value = '';
-  document.getElementById('loginPass').value = '';
+  const passEl = document.getElementById('loginPass');
+  if (passEl) passEl.value = '';
 }
 
 // ── SIDEBAR ──

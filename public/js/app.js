@@ -395,29 +395,60 @@ function initCustomerAuth() {
     });
   });
 
-  // Login form
+  // Send OTP
+  document.getElementById('sendOtpBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('clEmail').value.trim().toLowerCase();
+    if (!email) return showAuthError('Please enter your email first.');
+    
+    document.getElementById('sendOtpBtn').textContent = 'Sending...';
+    try {
+      const res = await fetch('/api/customers/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        document.getElementById('otpStep1').style.display = 'none';
+        document.getElementById('otpStep2').style.display = 'block';
+        document.getElementById('authError').classList.remove('show');
+        showToast('OTP sent to your email!');
+      } else {
+        showAuthError(data.error || 'Failed to send OTP.');
+      }
+    } catch(err) {
+      showAuthError('Server error. Try again.');
+    } finally {
+      document.getElementById('sendOtpBtn').textContent = 'Send OTP →';
+    }
+  });
+
+  // Verify OTP (Login form submit)
   document.getElementById('loginFormContainer')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('clEmail').value.trim().toLowerCase();
-    const pass = document.getElementById('clPass').value;
+    const otp = document.getElementById('clOtp').value.trim();
     
+    document.getElementById('customerLoginForm').textContent = 'Verifying...';
     try {
-      const res = await fetch('/api/customers/login', {
+      const res = await fetch('/api/customers/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pass })
+        body: JSON.stringify({ email, otp })
       });
       const data = await res.json();
       if (res.ok && data.success) {
         loginCustomer(data.customer);
         closeAuthModal();
         updateAuthUI();
-        showToast('👋 Welcome back, ' + data.customer.name + '!');
+        showToast('👋 Welcome, ' + data.customer.name + '!');
       } else {
-        showAuthError(data.error || 'Invalid email or password.');
+        showAuthError(data.error || 'Invalid or expired OTP.');
       }
     } catch(err) {
       showAuthError('Server error. Try again.');
+    } finally {
+      document.getElementById('customerLoginForm').textContent = 'Verify OTP & Login';
     }
   });
 
@@ -500,6 +531,28 @@ function openAuthModal() {
 function closeAuthModal() {
   document.getElementById('authOverlay')?.classList.remove('open');
 }
+
+// ── GOOGLE LOGIN CALLBACK ──
+window.handleGoogleLogin = async function(response) {
+  try {
+    const res = await fetch('/api/customers/google-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      loginCustomer(data.customer);
+      closeAuthModal();
+      updateAuthUI();
+      showToast('👋 Welcome, ' + data.customer.name + '!');
+    } else {
+      showAuthError(data.error || 'Google login failed.');
+    }
+  } catch(err) {
+    showAuthError('Server error during Google login.');
+  }
+};
 
 function showAuthError(msg) {
   const el = document.getElementById('authError');
