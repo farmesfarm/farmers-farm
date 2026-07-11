@@ -291,16 +291,18 @@ router.post('/customers/request-otp', async (req, res) => {
   otpStorage.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
 
   try {
-    await transporter.sendMail({
+    // Send email in the background without awaiting it to speed up UI response
+    transporter.sendMail({
       from: `"Farmers Farm" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Your Login OTP for Farmers Farm',
       html: `<h3>Welcome to Farmers Farm!</h3><p>Your OTP for login is: <strong style="font-size:24px;">${otp}</strong></p><p>This OTP is valid for 10 minutes.</p>`
-    });
+    }).catch(error => console.error('Background Error sending OTP:', error));
+    
     res.json({ success: true, message: 'OTP sent successfully' });
   } catch (error) {
-    console.error('Error sending OTP:', error);
-    res.status(500).json({ error: 'Failed to send OTP email' });
+    console.error('Error in request OTP:', error);
+    res.status(500).json({ error: 'Failed to request OTP' });
   }
 });
 
