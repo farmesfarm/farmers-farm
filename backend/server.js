@@ -40,5 +40,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`🌐 CORS allowed: ${allowedOrigins.join(', ')}`);
+  console.log(`🌐 CORS allows any origin dynamically`);
 });
