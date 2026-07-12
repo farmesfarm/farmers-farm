@@ -133,17 +133,33 @@ function renderProducts() {
       <img src="${p.image || '/images/pouch.png'}" alt="${p.name}" class="packet-image" />
       <div class="packet-weight">${p.weight}</div>
       <div class="packet-label">${p.name}</div>
-      <div class="packet-price">₹${p.price.toLocaleString('en-IN')}</div>
+      <div class="packet-price" id="price-${p.id}">₹${p.price.toLocaleString('en-IN')}</div>
+      <select class="size-select" id="size-${p.id}" onchange="updatePrice('${p.id}', ${p.price})">
+        <option value="" disabled selected>Select Pack Size</option>
+        <option value="80 gm — Starter Pack" data-multiplier="1">80 gm — Starter Pack</option>
+        <option value="240 gm — Classic Pack" data-multiplier="2.8">240 gm — Classic Pack</option>
+        <option value="500 gm — Family Pack" data-multiplier="5.5">500 gm — Family Pack</option>
+        <option value="1 kg — Harvest Pack" data-multiplier="10">1 kg — Harvest Pack</option>
+      </select>
       <div class="packet-note">${p.note}</div>
-      <button class="add-btn" onclick="addToCart(${p.id})">Add to Cart</button>
+      <button class="add-btn" onclick="addToCart('${p.id}')">Add to Cart</button>
     `;
     card.addEventListener('click', (e) => {
-      if (e.target.classList.contains('add-btn')) return;
+      if (e.target.closest('.add-btn') || e.target.closest('.size-select')) return;
       openQuickView(p);
     });
     grid.appendChild(card);
   });
 }
+
+window.updatePrice = function(id, basePrice) {
+  const select = document.getElementById('size-' + id);
+  if (!select) return;
+  const multiplier = parseFloat(select.options[select.selectedIndex].getAttribute('data-multiplier'));
+  const newPrice = Math.round(basePrice * multiplier);
+  const priceEl = document.getElementById('price-' + id);
+  if (priceEl) priceEl.innerText = '₹' + newPrice.toLocaleString('en-IN');
+};
 
 // ── QUICK VIEW ──
 function openQuickView(product) {
@@ -178,25 +194,37 @@ function addToCart(productId) {
   const products = getProducts();
   const product = products.find(p => p.id === productId);
   if (!product) return;
-  const existing = cart.find(c => c.id === productId);
-  if (existing) { existing.qty++; } else { cart.push({ ...product, qty: 1 }); }
+  
+  const select = document.getElementById('size-' + productId);
+  if (select && !select.value) {
+    showToast('⚠️ Please select a size first!');
+    return;
+  }
+  
+  const size = select ? select.value : product.weight;
+  const multiplier = select ? parseFloat(select.options[select.selectedIndex].getAttribute('data-multiplier')) : 1;
+  const finalPrice = Math.round(product.price * multiplier);
+  const cartKey = productId + '-' + size;
+
+  const existing = cart.find(c => c.cartKey === cartKey);
+  if (existing) { existing.qty++; } else { cart.push({ ...product, price: finalPrice, size: size, cartKey: cartKey, qty: 1 }); }
   saveCart(cart);
   updateCartUI();
-  showToast('✅ ' + product.weight + ' ' + product.name + ' added to cart!');
+  showToast('✅ ' + size + ' ' + product.name + ' added to cart!');
   const count = document.getElementById('cartCount');
   if (count) { count.classList.remove('bump'); void count.offsetWidth; count.classList.add('bump'); }
 }
 
-function removeFromCart(productId) {
-  cart = cart.filter(c => c.id !== productId);
+function removeFromCart(cartKey) {
+  cart = cart.filter(c => c.cartKey !== cartKey);
   saveCart(cart); updateCartUI();
 }
 
-function changeQty(productId, delta) {
-  const item = cart.find(c => c.id === productId);
+function changeQty(cartKey, delta) {
+  const item = cart.find(c => c.cartKey === cartKey);
   if (!item) return;
   item.qty += delta;
-  if (item.qty <= 0) { removeFromCart(productId); return; }
+  if (item.qty <= 0) { removeFromCart(cartKey); return; }
   saveCart(cart); updateCartUI();
 }
 
@@ -216,13 +244,14 @@ function updateCartUI() {
       <div class="cart-item">
         <img src="${item.image || '/images/pouch.png'}" class="cart-item-image" alt="${item.name}" />
         <div class="cart-item-info">
-          <div class="cart-item-name">${item.weight} ${item.name}</div>
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-name" style="font-size: 13px; color: var(--gold-dark); margin-top: 4px;">Size: ${item.size || item.weight}</div>
           <div class="cart-item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
         </div>
         <div class="cart-item-qty">
-          <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+          <button class="qty-btn" onclick="changeQty('${item.cartKey}', -1)">−</button>
           <span class="qty-num">${item.qty}</span>
-          <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+          <button class="qty-btn" onclick="changeQty('${item.cartKey}', 1)">+</button>
         </div>
       </div>
     `).join('');

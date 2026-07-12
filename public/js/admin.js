@@ -141,15 +141,18 @@ async function loadDashboardData() {
 }
 
 // ── PRODUCTS TABLE ──
+let allProducts = [];
+let editProductId = null;
+
 async function renderProductsTable() {
-  const products = await fetchAPI('/products') || [];
+  allProducts = await fetchAPI('/products') || [];
   const tbody = document.getElementById('productsBody');
   if (!tbody) return;
-  if (products.length === 0) {
+  if (allProducts.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:rgba(228,237,231,0.35);">No products yet. Click "Add Product" to get started.</td></tr>`;
     return;
   }
-  tbody.innerHTML = products.map(p => `
+  tbody.innerHTML = allProducts.map(p => `
     <tr>
       <td><img src="${p.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" /></td>
       <td style="font-weight:600; color:var(--white);">${p.weight} ${p.name}</td>
@@ -157,11 +160,17 @@ async function renderProductsTable() {
       <td style="font-size:12px; color:rgba(228,237,231,0.4); max-width:200px;">${p.note}</td>
       <td>${p.popular ? '<span class="table-badge badge-popular">⭐ Popular</span>' : '<span class="table-badge badge-new">Standard</span>'}</td>
       <td>
-        <button class="btn-delete" onclick="deleteProduct(${p.id})">Delete</button>
+        <button class="btn-edit" onclick="editProduct('${p.id}')">Edit</button>
+        <button class="btn-delete" onclick="deleteProduct('${p.id}')">Delete</button>
       </td>
     </tr>
   `).join('');
 }
+
+window.editProduct = function(id) {
+  const p = allProducts.find(x => x.id === id);
+  if (p) openProductModal(p);
+};
 
 // ── PRODUCT MODAL ──
 function initProductModal() {
@@ -172,11 +181,26 @@ function initProductModal() {
   document.getElementById('productModal')?.addEventListener('click', (e) => { if (e.target.id === 'productModal') closeProductModal(); });
 }
 
-function openProductModal() {
+function openProductModal(product = null) {
   const modal = document.getElementById('productModal');
   const title = document.getElementById('modalTitle');
-  title.textContent = 'Add New Product';
-  document.getElementById('productForm').reset();
+  const form = document.getElementById('productForm');
+  form.reset();
+  
+  if (product && product.id) {
+    editProductId = product.id;
+    title.textContent = 'Edit Product';
+    document.getElementById('pWeight').value = product.weight || '';
+    document.getElementById('pName').value = product.name || '';
+    document.getElementById('pPrice').value = product.price || '';
+    document.getElementById('pNote').value = product.note || '';
+    document.getElementById('pPopular').value = product.popular ? 'yes' : 'no';
+    document.getElementById('pImage').removeAttribute('required');
+  } else {
+    editProductId = null;
+    title.textContent = 'Add New Product';
+    document.getElementById('pImage').setAttribute('required', 'true');
+  }
   modal.classList.add('open');
 }
 
@@ -191,7 +215,7 @@ async function saveProduct(e) {
   const formData = new FormData();
   if (fileInput.files.length > 0) {
     formData.append('image', fileInput.files[0]);
-  } else {
+  } else if (!editProductId) {
     alert('Please upload an image.');
     return;
   }
@@ -208,8 +232,11 @@ async function saveProduct(e) {
 
   try {
     const token = localStorage.getItem(TOKEN_KEY);
-    const res = await fetch('/api/products', {
-      method: 'POST',
+    const url = editProductId ? `/api/products/${editProductId}` : '/api/products';
+    const method = editProductId ? 'PUT' : 'POST';
+    
+    const res = await fetch(url, {
+      method: method,
       headers: { 'Authorization': `Bearer ${token}` },
       body: formData
     });

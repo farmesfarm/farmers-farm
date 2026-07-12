@@ -477,7 +477,32 @@ section { padding: 88px 48px; }
 .packet-card:hover .packet-label { color: var(--gold-light); }
 .packet-card:hover .packet-price { color: var(--gold); }
 .packet-card:hover .packet-note { color: rgba(255,255,255,0.65); }
+.packet-card:hover .size-select { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); color: var(--white); }
 .packet-card:hover::before { opacity: 1; }
+
+.size-select {
+  width: 100%;
+  padding: 8px 12px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid rgba(27,58,45,0.2);
+  background: rgba(255,255,255,0.8);
+  color: var(--green-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  outline: none;
+  position: relative;
+  z-index: 10;
+}
+.size-select option {
+  color: #1B3A2D; /* var(--green-dark) */
+  background: #FFFFFF;
+}
+.size-select:hover {
+  border-color: var(--gold);
+}
 .packet-card.popular { border-color: var(--gold); box-shadow: 0 4px 24px rgba(201,168,76,0.12); }
 .popular-badge {
   position: absolute; top: 12px; right: 12px;

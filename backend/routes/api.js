@@ -152,6 +152,28 @@ router.post('/products', verifyAdmin, upload.single('image'), async (req, res) =
   }
 });
 
+router.put('/products/:id', verifyAdmin, upload.single('image'), async (req, res) => {
+  const { name, weight, price, note, popular } = req.body;
+  const updateData = {
+    name,
+    weight,
+    price: Number(price),
+    note,
+    popular: popular === 'true'
+  };
+
+  if (req.file) {
+    updateData.image = `/images/uploads/${req.file.filename}`;
+  }
+
+  try {
+    const id = req.params.id;
+    await db.collection('products').doc(id).update(updateData);
+    res.json({ success: true, product: { id, ...updateData } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 router.delete('/products/:id', verifyAdmin, async (req, res) => {
   try {
     const id = req.params.id;

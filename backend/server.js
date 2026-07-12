@@ -23,6 +23,11 @@ app.use(express.static(path.join(__dirname, '../public')));
 const apiRoutes = require('./routes/api');
 app.use('/api', apiRoutes);
 
+// Route for admin page
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/admin.html'));
+});
+
 // Catch-all route to serve the frontend
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) return next();
