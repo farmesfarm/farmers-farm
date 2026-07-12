@@ -6,6 +6,13 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const { OAuth2Client } = require('google-auth-library');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'YOUR_CLOUD_NAME',
+  api_key: process.env.CLOUDINARY_API_KEY || 'YOUR_API_KEY',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'YOUR_API_SECRET'
+});
 
 // OTP Storage (Email -> { otp, expiresAt })
 const otpStorage = new Map();
@@ -133,7 +140,18 @@ router.get('/products', async (req, res) => {
 
 router.post('/products', verifyAdmin, upload.single('image'), async (req, res) => {
   const { name, weight, price, note, popular } = req.body;
-  const image = req.file ? `/images/uploads/${req.file.filename}` : '/images/pouch.png';
+  let image = '/images/pouch.png';
+  
+  if (req.file) {
+    try {
+      const result = await cloudinary.uploader.upload(req.file.path, { folder: 'farmers-farm' });
+      image = result.secure_url;
+      fs.unlinkSync(req.file.path); // delete local temp file
+    } catch (err) {
+      console.error('Cloudinary Upload Error:', err);
+      return res.status(500).json({ error: 'Image upload to Cloudinary failed.' });
+    }
+  }
 
   const newProduct = {
     name,
@@ -163,7 +181,14 @@ router.put('/products/:id', verifyAdmin, upload.single('image'), async (req, res
   };
 
   if (req.file) {
-    updateData.image = `/images/uploads/${req.file.filename}`;
+    try {
+      const result = await cloudinary.uploader.upload(req.file.path, { folder: 'farmers-farm' });
+      updateData.image = result.secure_url;
+      fs.unlinkSync(req.file.path); // delete local temp file
+    } catch (err) {
+      console.error('Cloudinary Upload Error:', err);
+      return res.status(500).json({ error: 'Image upload to Cloudinary failed.' });
+    }
   }
 
   try {
