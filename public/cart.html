@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Cart – Farmers Farm</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=3">
+<!-- Google Identity Services for Google Login -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body style="background: var(--cream);">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="window.location.href='/'" style="cursor: pointer;">
+    <span>FARMERS FARM</span>
+    <span>Est. 2020 · Pure Harvest</span>
+  </div>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-user" id="navUserBtn" style="position:relative;" title="Login / Sign Up">👤
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-name" id="dropdownName"></div>
+        <div class="user-dropdown-email" id="dropdownEmail"></div>
+        <button class="user-dropdown-item danger" id="logoutBtn">🚪 Logout</button>
+      </div>
+    </div>
+    <div class="nav-cart" id="cartIcon" title="View Cart">🛒<span class="cart-count" id="cartCount">0</span></div>
+  </div>
+</nav>
+
+<!-- CART PAGE CONTENT -->
+<section style="padding: 120px 20px 60px 20px; min-height: 80vh;">
+  <div class="section-title">
+    <h2>Your <span>Cart</span></h2>
+    <p>Review your items and proceed to checkout.</p>
+  </div>
+  
+  <div class="cart-page-container" style="max-width: 800px; margin: 0 auto; background: var(--white); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid rgba(201,168,76,0.15);">
+    <div class="cart-items" id="cartItems" style="max-height: none; padding: 30px;">
+      <div class="cart-empty"><span class="cart-empty-icon">🛒</span><p>Your cart is empty</p></div>
+    </div>
+    
+    <div class="cart-footer" style="padding: 30px; background: rgba(247,242,232,0.5);">
+      <div class="cart-total" style="margin-bottom: 24px;">
+        <span class="cart-total-label">Subtotal</span>
+        <span class="cart-total-price" id="cartTotal">₹0</span>
+      </div>
+      <button class="cart-checkout" id="checkoutBtn" style="padding: 18px; font-size: 15px;" disabled>Proceed to Checkout</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <span>FARMERS FARM</span>
+    <p>Nature's Finest, Farm to Cup.</p>
+  </div>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/admin">Admin Login</a>
+  </div>
+</footer>
+
+<!-- Toast & Modals from app.js will append to body -->
+<!-- Auth Modal Structure (hidden by default) -->
+<div class="modal-overlay" id="authOverlay">
+  <div class="auth-modal">
+    <div class="auth-close" id="authClose">✕</div>
+    <h2>Welcome to <span>Farmers Farm</span></h2>
+    <p>Please login to continue with your purchase.</p>
+    <div id="googleAuthBtn" style="display:flex; justify-content:center; margin-top:20px;"></div>
+  </div>
+</div>
+
+<!-- ADDRESS / CHECKOUT MODAL -->
+<div class="checkout-overlay" id="addressOverlay">
+  <div class="checkout-modal" style="text-align:left;">
+    <button class="auth-modal-close" onclick="closeAddressModal()">✕</button>
+    <div class="auth-title" style="margin-bottom:4px;">Delivery Details</div>
+    <div class="auth-subtitle" style="margin-bottom:12px;">Where should we deliver your tea?</div>
+
+    <!-- Payment Badge -->
+    <div style="display:flex; align-items:center; gap:8px; background:rgba(45,90,39,0.2); border:1px solid rgba(45,90,39,0.5); border-radius:8px; padding:10px 14px; margin-bottom:18px;">
+      <span style="font-size:20px;">📦</span>
+      <div>
+        <div style="font-size:13px; font-weight:700; color:var(--gold);">Cash on Delivery</div>
+        <div style="font-size:11px; color:var(--mist); opacity:0.8;">Pay when your order arrives at your doorstep</div>
+      </div>
+    </div>
+
+    <button class="location-btn" id="getLocationBtn" type="button">
+      <span class="loc-icon">📍</span> Use My Current Location
+    </button>
+
+    <form id="checkoutAddressForm" class="auth-form active">
+      <div class="auth-field">
+        <label>Full Address</label>
+        <textarea id="checkoutAddress" placeholder="House/Flat No, Street, Landmark" required style="resize:vertical; min-height:80px;"></textarea>
+      </div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div class="auth-field" style="margin-bottom:0;">
+          <label>City</label>
+          <input type="text" id="checkoutCity" placeholder="City" required>
+        </div>
+        <div class="auth-field" style="margin-bottom:0;">
+          <label>PIN Code</label>
+          <input type="text" id="checkoutPin" placeholder="6-digit PIN" maxlength="6" pattern="\d{6}" required>
+        </div>
+      </div>
+      <input type="hidden" id="checkoutLat">
+      <input type="hidden" id="checkoutLng">
+      <button type="submit" class="auth-btn">📦 Place Order (COD) →</button>
+    </form>
+  </div>
+</div>
+
+<!-- CHECKOUT SUCCESS MODAL -->
+<div class="checkout-overlay" id="checkoutOverlay" onclick="if(event.target===this)closeCheckoutSuccess()">
+  <div class="checkout-modal">
+    <div class="checkout-success-icon">🎉</div>
+    <div class="checkout-success-title">Order Placed!</div>
+    <div class="checkout-success-id" id="checkoutOrderId">ORD-XXXXX</div>
+    <div class="checkout-success-text">Your order of <strong id="checkoutOrderTotal">₹0</strong> has been placed successfully. We'll prepare it for shipping right away!</div>
+    <button class="checkout-ok-btn" onclick="closeCheckoutSuccess()">Continue Shopping</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="js/app.js?v=3"></script>
+<script>
+  // Ensure the cart UI is updated correctly on load
+  document.addEventListener('DOMContentLoaded', () => {
+    // Override nav cart icon click
+    const cartIcon = document.getElementById('cartIcon');
+    if(cartIcon) {
+      cartIcon.onclick = null; // remove default
+      cartIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Since we are already on the cart page, maybe do nothing or scroll top
+        window.scrollTo({top:0, behavior:'smooth'});
+      });
+    }
+  });
+</script>
+</body>
+</html>

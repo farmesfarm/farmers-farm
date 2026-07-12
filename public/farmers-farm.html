@@ -211,16 +211,7 @@
   <div class="footer-socials"><a href="#" title="Instagram">📸</a><a href="#" title="Facebook">📘</a><a href="#" title="YouTube">▶️</a><a href="#" title="WhatsApp">💬</a></div>
 </footer>
 
-<!-- CART DRAWER -->
-<div class="cart-overlay" id="cartOverlay"></div>
-<div class="cart-drawer" id="cartDrawer">
-  <div class="cart-header"><h3>🛒 Your Cart</h3><button class="cart-close" id="cartClose">✕</button></div>
-  <div class="cart-items" id="cartItems"><div class="cart-empty"><span class="cart-empty-icon">🛒</span><p>Your cart is empty</p></div></div>
-  <div class="cart-footer">
-    <div class="cart-total"><span class="cart-total-label">Total</span><span class="cart-total-price" id="cartTotal">₹0</span></div>
-    <button class="cart-checkout" id="checkoutBtn" disabled>Place Order</button>
-  </div>
-</div>
+
 
 <!-- QUICK VIEW MODAL -->
 <div class="quickview-overlay" id="quickviewOverlay" onclick="if(event.target===this)closeQuickView()">
@@ -289,47 +280,7 @@
   </div>
 </div>
 
-<!-- ADDRESS / CHECKOUT MODAL -->
-<div class="checkout-overlay" id="addressOverlay">
-  <div class="checkout-modal" style="text-align:left;">
-    <button class="auth-modal-close" onclick="closeAddressModal()">✕</button>
-    <div class="auth-title" style="margin-bottom:4px;">Delivery Details</div>
-    <div class="auth-subtitle" style="margin-bottom:12px;">Where should we deliver your tea?</div>
 
-    <!-- Payment Badge -->
-    <div style="display:flex; align-items:center; gap:8px; background:rgba(45,90,39,0.2); border:1px solid rgba(45,90,39,0.5); border-radius:8px; padding:10px 14px; margin-bottom:18px;">
-      <span style="font-size:20px;">📦</span>
-      <div>
-        <div style="font-size:13px; font-weight:700; color:var(--gold);">Cash on Delivery</div>
-        <div style="font-size:11px; color:var(--mist); opacity:0.8;">Pay when your order arrives at your doorstep</div>
-      </div>
-    </div>
-
-    <button class="location-btn" id="getLocationBtn" type="button">
-      <span class="loc-icon">📍</span> Use My Current Location
-    </button>
-
-    <form id="checkoutAddressForm" class="auth-form active">
-      <div class="auth-field">
-        <label>Full Address</label>
-        <textarea id="checkoutAddress" placeholder="House/Flat No, Street, Landmark" required style="resize:vertical; min-height:80px;"></textarea>
-      </div>
-      <div class="form-row" style="margin-bottom:14px;">
-        <div class="auth-field" style="margin-bottom:0;">
-          <label>City</label>
-          <input type="text" id="checkoutCity" placeholder="City" required>
-        </div>
-        <div class="auth-field" style="margin-bottom:0;">
-          <label>PIN Code</label>
-          <input type="text" id="checkoutPin" placeholder="6-digit PIN" maxlength="6" pattern="\d{6}" required>
-        </div>
-      </div>
-      <input type="hidden" id="checkoutLat">
-      <input type="hidden" id="checkoutLng">
-      <button type="submit" class="auth-btn">📦 Place Order (COD) →</button>
-    </form>
-  </div>
-</div>
 
 <!-- CHECKOUT SUCCESS MODAL -->
 <div class="checkout-overlay" id="checkoutOverlay" onclick="if(event.target===this)closeCheckoutSuccess()">

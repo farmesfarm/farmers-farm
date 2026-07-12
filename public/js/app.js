@@ -264,8 +264,7 @@ function updateCartUI() {
 }
 
 function openCartDrawer() {
-  document.getElementById('cartOverlay')?.classList.add('open');
-  document.getElementById('cartDrawer')?.classList.add('open');
+  window.location.href = '/cart.html';
 }
 function closeCartDrawer() {
   document.getElementById('cartOverlay')?.classList.remove('open');
@@ -285,8 +284,13 @@ function checkout() {
   }
 
   // Open address modal instead of directly placing order
-  closeCartDrawer();
-  document.getElementById('addressOverlay')?.classList.add('open');
+  const addrOverlay = document.getElementById('addressOverlay');
+  if (addrOverlay) {
+    addrOverlay.classList.add('open');
+  } else {
+    // If we are not on cart.html, redirect there
+    window.location.href = '/cart.html';
+  }
 }
 
 function closeAddressModal() {
@@ -407,6 +411,9 @@ function showCheckoutSuccess(order) {
 }
 function closeCheckoutSuccess() {
   document.getElementById('checkoutOverlay')?.classList.remove('open');
+  if (window.location.pathname.includes('/cart.html')) {
+    window.location.href = '/';
+  }
 }
 
 // ── CUSTOMER AUTH ──
