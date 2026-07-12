@@ -3,4 +3,3 @@ node_modules/
 .DS_Store
 *.log
 backend/serviceAccountKey.json
-public/images/uploads/
