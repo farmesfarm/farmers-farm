@@ -780,6 +780,7 @@ footer p { font-size: 12px; }
   to { opacity: 1; transform: translateX(0); }
 }
 .cart-item-icon { font-size: 32px; }
+.cart-item-image { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
 .cart-item-info { flex: 1; }
 .cart-item-name { font-weight: 700; color: var(--green-deep); font-size: 14px; }
 .cart-item-price { font-size: 13px; color: var(--gold); font-weight: 600; }
@@ -1152,6 +1153,8 @@ footer p { font-size: 12px; }
   .about-stats { flex-wrap: wrap; gap: 24px; }
   .testimonial-card { min-width: 280px; }
   .feedback-form { padding: 20px; }
+  
+  .cart-drawer { width: 100vw; max-width: 100vw; right: -100vw; }
 }
 
 @media (max-width: 480px) {
