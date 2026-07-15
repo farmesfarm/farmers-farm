@@ -22,11 +22,18 @@
     <li><a href="/">Home</a></li>
   </ul>
   <div class="nav-right">
-    <div class="nav-user" id="navUserBtn" style="position:relative;" title="Login / Sign Up">👤
+    <div class="nav-user" id="navUserBtn" style="position:relative; cursor:pointer;" title="Account">
+      <div id="navUserIcon" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; font-size:20px; color:var(--mist);">👤</div>
       <div class="user-dropdown" id="userDropdown">
-        <div class="user-dropdown-name" id="dropdownName"></div>
-        <div class="user-dropdown-email" id="dropdownEmail"></div>
-        <button class="user-dropdown-item danger" id="logoutBtn">🚪 Logout</button>
+        <div id="dropdownLoggedOutView">
+          <button class="user-dropdown-item" onclick="openAuthModal(); document.getElementById('userDropdown').classList.remove('show');">🔐 Login / Sign Up</button>
+        </div>
+        <div id="dropdownLoggedInView" style="display: none;">
+          <div class="user-dropdown-name" id="dropdownName"></div>
+          <div class="user-dropdown-email" id="dropdownEmail"></div>
+          <button class="user-dropdown-item" onclick="openAccountModal(); document.getElementById('userDropdown').classList.remove('show');">⚙️ My Account</button>
+          <button class="user-dropdown-item danger" id="logoutBtn">🚪 Logout</button>
+        </div>
       </div>
     </div>
     <div class="nav-cart" id="cartIcon" title="View Cart">🛒<span class="cart-count" id="cartCount">0</span></div>

@@ -1,12 +1,12 @@
-/* ═══════════════════════════════════════════════════════════════
-   FARMERS FARM – 7 TEA AM  |  Main Application JS
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+   FARMERS FARM ΓÇô 7 TEA AM  |  Main Application JS
    Customer Auth + Cart + Orders + Animations
-   ═══════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
-// ── DEFAULT PRODUCTS ──
+// ΓöÇΓöÇ DEFAULT PRODUCTS ΓöÇΓöÇ
 // Removed as per dynamic admin requirement
 
-// ── DATA LAYER ──
+// ΓöÇΓöÇ DATA LAYER ΓöÇΓöÇ
 let globalProductsCache = [];
 
 async function fetchProducts() {
@@ -70,7 +70,7 @@ async function saveFeedback(feedback) {
   }
 }
 
-// ── CUSTOMER AUTH ──
+// ΓöÇΓöÇ CUSTOMER AUTH ΓöÇΓöÇ
 // Customer sessions will still use localStorage for the token/ID for simplicity,
 // but actual auth goes to the backend.
 function getLoggedInCustomer() {
@@ -101,12 +101,12 @@ function logoutCustomer() {
   renderProducts();
 }
 
-// ── PRELOADER ──
+// ΓöÇΓöÇ PRELOADER ΓöÇΓöÇ
 // Generate floating gold particles
 (function initPreloaderParticles() {
   const container = document.getElementById('preloaderParticles');
   if (!container) return;
-  const emojis = ['🍃', '✨', '🌿', '☕', '🌱'];
+  const emojis = ['≡ƒìâ', 'Γ£¿', '≡ƒî┐', 'Γÿò', '≡ƒî▒'];
   for (let i = 0; i < 20; i++) {
     const el = document.createElement('div');
     el.className = 'pl-particle';
@@ -134,7 +134,7 @@ window.addEventListener('load', () => {
 });
 
 
-// ── INIT ──
+// ΓöÇΓöÇ INIT ΓöÇΓöÇ
 document.addEventListener('DOMContentLoaded', async () => {
   // Theme Toggle
   document.getElementById('themeToggleBtn')?.addEventListener('click', () => {
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const leafBg = document.getElementById('leafBg');
   if (leafBg) {
-    const symbols = ['🍃','🌿','🍵','🌱','✨'];
+    const symbols = ['≡ƒìâ','≡ƒî┐','≡ƒì╡','≡ƒî▒','Γ£¿'];
     for (let i = 0; i < 18; i++) {
       const el = document.createElement('div');
       el.className = 'leaf';
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCustomerAuth();
 });
 
-// ── RENDER PRODUCTS ──
+// ΓöÇΓöÇ RENDER PRODUCTS ΓöÇΓöÇ
 let currentSearchTerm = '';
 let currentCategory = 'all';
 
@@ -268,17 +268,17 @@ function renderProducts() {
     card.className = 'packet-card' + (p.popular ? ' popular' : '');
     card.innerHTML = `
       ${p.popular ? '<div class="popular-badge">Best Seller</div>' : ''}
-      <button class="wishlist-btn ${isWished ? 'active' : ''}" onclick="toggleWishlist(event, '${p.id}')" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; width: 36px; height: 36px; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; z-index: 10; color: ${isWished ? 'var(--gold)' : 'white'};">${isWished ? '♥' : '♡'}</button>
+      <button class="wishlist-btn ${isWished ? 'active' : ''}" onclick="toggleWishlist(event, '${p.id}')" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; width: 36px; height: 36px; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; z-index: 10; color: ${isWished ? 'var(--gold)' : 'white'};">${isWished ? 'ΓÖÑ' : 'ΓÖí'}</button>
       <img src="${p.image || '/images/pouch.png'}" alt="${p.name}" class="packet-image" />
       <div class="packet-weight">${p.weight}</div>
       <div class="packet-label">${p.name}</div>
-      <div class="packet-price" id="price-${p.id}">₹${p.price.toLocaleString('en-IN')}</div>
+      <div class="packet-price" id="price-${p.id}">Γé╣${p.price.toLocaleString('en-IN')}</div>
       <select class="size-select" id="size-${p.id}" onchange="updatePrice('${p.id}', ${p.price})">
         <option value="" disabled selected>Select Pack Size</option>
-        <option value="80 gm — Starter Pack" data-multiplier="1">80 gm — Starter Pack</option>
-        <option value="240 gm — Classic Pack" data-multiplier="2.8">240 gm — Classic Pack</option>
-        <option value="500 gm — Family Pack" data-multiplier="5.5">500 gm — Family Pack</option>
-        <option value="1 kg — Harvest Pack" data-multiplier="10">1 kg — Harvest Pack</option>
+        <option value="80 gm ΓÇö Starter Pack" data-multiplier="1">80 gm ΓÇö Starter Pack</option>
+        <option value="240 gm ΓÇö Classic Pack" data-multiplier="2.8">240 gm ΓÇö Classic Pack</option>
+        <option value="500 gm ΓÇö Family Pack" data-multiplier="5.5">500 gm ΓÇö Family Pack</option>
+        <option value="1 kg ΓÇö Harvest Pack" data-multiplier="10">1 kg ΓÇö Harvest Pack</option>
       </select>
       <div class="packet-note">${p.note}</div>
       <button class="add-btn" onclick="addToCart('${p.id}')">Add to Cart</button>
@@ -297,10 +297,10 @@ window.updatePrice = function(id, basePrice) {
   const multiplier = parseFloat(select.options[select.selectedIndex].getAttribute('data-multiplier'));
   const newPrice = Math.round(basePrice * multiplier);
   const priceEl = document.getElementById('price-' + id);
-  if (priceEl) priceEl.innerText = '₹' + newPrice.toLocaleString('en-IN');
+  if (priceEl) priceEl.innerText = 'Γé╣' + newPrice.toLocaleString('en-IN');
 };
 
-// ── QUICK VIEW ──
+// ΓöÇΓöÇ QUICK VIEW ΓöÇΓöÇ
 function openQuickView(product) {
   const overlay = document.getElementById('quickviewOverlay');
   const imgEl = document.getElementById('qvIcon');
@@ -309,7 +309,7 @@ function openQuickView(product) {
   }
   document.getElementById('qvWeight').textContent = product.weight;
   document.getElementById('qvName').textContent = product.name;
-  document.getElementById('qvPrice').textContent = '₹' + product.price.toLocaleString('en-IN');
+  document.getElementById('qvPrice').textContent = 'Γé╣' + product.price.toLocaleString('en-IN');
   document.getElementById('qvDesc').textContent = product.note;
   document.getElementById('qvAddBtn').onclick = () => { addToCart(product.id); closeQuickView(); };
   overlay.classList.add('open');
@@ -318,7 +318,7 @@ function closeQuickView() {
   document.getElementById('quickviewOverlay').classList.remove('open');
 }
 
-// ── CART SYSTEM ──
+// ΓöÇΓöÇ CART SYSTEM ΓöÇΓöÇ
 let cart = [];
 let appliedPromo = null;
 
@@ -342,7 +342,7 @@ function addToCart(productId) {
   
   const select = document.getElementById('size-' + productId);
   if (select && !select.value) {
-    showToast('⚠️ Please select a size first!');
+    showToast('ΓÜá∩╕Å Please select a size first!');
     return;
   }
   
@@ -355,7 +355,7 @@ function addToCart(productId) {
   if (existing) { existing.qty++; } else { cart.push({ ...product, price: finalPrice, size: size, cartKey: cartKey, qty: 1 }); }
   saveCart(cart);
   updateCartUI();
-  showToast('✅ ' + size + ' ' + product.name + ' added to cart!');
+  showToast('Γ£à ' + size + ' ' + product.name + ' added to cart!');
   const count = document.getElementById('cartCount');
   if (count) { count.classList.remove('bump'); void count.offsetWidth; count.classList.add('bump'); }
 }
@@ -383,7 +383,7 @@ function updateCartUI() {
   if (!cartItemsEl) return;
 
   if (cart.length === 0) {
-    cartItemsEl.innerHTML = `<div class="cart-empty"><span class="cart-empty-icon">🛒</span><p>Your cart is empty</p></div>`;
+    cartItemsEl.innerHTML = `<div class="cart-empty"><span class="cart-empty-icon">≡ƒ¢Æ</span><p>Your cart is empty</p></div>`;
   } else {
     cartItemsEl.innerHTML = cart.map(item => `
       <div class="cart-item">
@@ -391,10 +391,10 @@ function updateCartUI() {
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-name" style="font-size: 13px; color: var(--gold-dark); margin-top: 4px;">Size: ${item.size || item.weight}</div>
-          <div class="cart-item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
+          <div class="cart-item-price">Γé╣${(item.price * item.qty).toLocaleString('en-IN')}</div>
         </div>
         <div class="cart-item-qty">
-          <button class="qty-btn" onclick="changeQty('${item.cartKey}', -1)">−</button>
+          <button class="qty-btn" onclick="changeQty('${item.cartKey}', -1)">ΓêÆ</button>
           <span class="qty-num">${item.qty}</span>
           <button class="qty-btn" onclick="changeQty('${item.cartKey}', 1)">+</button>
         </div>
@@ -410,16 +410,16 @@ function updateCartUI() {
   if (appliedPromo && totalPriceNum > 0) {
     const discountAmount = (totalPriceNum * appliedPromo.discountPercentage) / 100;
     finalPrice = totalPriceNum - discountAmount;
-    discountText = `<div style="font-size:13px; color:#2ecc71; margin-bottom:4px;">Discount (${appliedPromo.promoCode}): -₹${Math.round(discountAmount).toLocaleString('en-IN')}</div>`;
+    discountText = `<div style="font-size:13px; color:#2ecc71; margin-bottom:4px;">Discount (${appliedPromo.promoCode}): -Γé╣${Math.round(discountAmount).toLocaleString('en-IN')}</div>`;
   } else {
     appliedPromo = null;
   }
 
   if (totalEl) {
     if (appliedPromo) {
-      totalEl.innerHTML = `${discountText}<strong>₹${Math.round(finalPrice).toLocaleString('en-IN')}</strong> <del style="font-size:13px; color:var(--mist); font-weight:normal; margin-left:6px;">₹${totalPriceNum.toLocaleString('en-IN')}</del>`;
+      totalEl.innerHTML = `${discountText}<strong>Γé╣${Math.round(finalPrice).toLocaleString('en-IN')}</strong> <del style="font-size:13px; color:var(--mist); font-weight:normal; margin-left:6px;">Γé╣${totalPriceNum.toLocaleString('en-IN')}</del>`;
     } else {
-      totalEl.textContent = '₹' + totalPriceNum.toLocaleString('en-IN');
+      totalEl.textContent = 'Γé╣' + totalPriceNum.toLocaleString('en-IN');
     }
   }
   const checkoutBtn = document.getElementById('checkoutBtn');
@@ -452,7 +452,7 @@ async function applyPromo() {
     
     if (res.ok && data.success) {
       appliedPromo = data;
-      if(msgEl) msgEl.innerHTML = `<span style="color:#2ecc71;">🎉 ${data.discountPercentage}% off applied successfully!</span>`;
+      if(msgEl) msgEl.innerHTML = `<span style="color:#2ecc71;">≡ƒÄë ${data.discountPercentage}% off applied successfully!</span>`;
       updateCartUI();
     } else {
       appliedPromo = null;
@@ -480,7 +480,7 @@ function checkout() {
   const customer = getLoggedInCustomer();
   if (!customer) {
     closeCartDrawer();
-    showToast('⚠️ Please login first to place an order.');
+    showToast('ΓÜá∩╕Å Please login first to place an order.');
     setTimeout(() => openAuthModal(), 500);
     return;
   }
@@ -502,30 +502,30 @@ function closeAddressModal() {
 // Location API integration
 document.getElementById('getLocationBtn')?.addEventListener('click', () => {
   const btn = document.getElementById('getLocationBtn');
-  btn.innerHTML = '<span class="loc-icon">⏳</span> Fetching location...';
+  btn.innerHTML = '<span class="loc-icon">ΓÅ│</span> Fetching location...';
   
   if ("geolocation" in navigator) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         document.getElementById('checkoutLat').value = position.coords.latitude;
         document.getElementById('checkoutLng').value = position.coords.longitude;
-        btn.innerHTML = '<span class="loc-icon">✅</span> Location Secured';
+        btn.innerHTML = '<span class="loc-icon">Γ£à</span> Location Secured';
         btn.style.borderColor = 'var(--gold)';
         btn.style.color = 'var(--gold)';
-        showToast('📍 GPS Location added to your order!');
+        showToast('≡ƒôì GPS Location added to your order!');
       },
       (error) => {
-        btn.innerHTML = '<span class="loc-icon">📍</span> Try Again';
-        showToast('⚠️ Could not fetch location. Please type your address manually.');
+        btn.innerHTML = '<span class="loc-icon">≡ƒôì</span> Try Again';
+        showToast('ΓÜá∩╕Å Could not fetch location. Please type your address manually.');
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   } else {
-    showToast('⚠️ Geolocation is not supported by your browser.');
+    showToast('ΓÜá∩╕Å Geolocation is not supported by your browser.');
   }
 });
 
-// Finalize Order – COD / Online Payment
+// Finalize Order ΓÇô COD / Online Payment
 document.getElementById('checkoutAddressForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -539,11 +539,11 @@ document.getElementById('checkoutAddressForm')?.addEventListener('submit', async
   const lng     = document.getElementById('checkoutLng').value;
 
   if (!address || !city || !pin) {
-    showToast('⚠️ Please fill in all address fields.');
+    showToast('ΓÜá∩╕Å Please fill in all address fields.');
     return;
   }
   if (!/^\d{6}$/.test(pin)) {
-    showToast('⚠️ Please enter a valid 6-digit PIN code.');
+    showToast('ΓÜá∩╕Å Please enter a valid 6-digit PIN code.');
     return;
   }
 
@@ -553,12 +553,12 @@ document.getElementById('checkoutAddressForm')?.addEventListener('submit', async
   const paymentMethod = paymentMethodRadio ? paymentMethodRadio.value : 'cod';
 
   if (paymentMethod === 'online') {
-    showToast('⚠️ Online Payment is currently being set up. Please choose Cash on Delivery.');
+    showToast('ΓÜá∩╕Å Online Payment is currently being set up. Please choose Cash on Delivery.');
     return;
   }
 
   const btn = e.target.querySelector('button[type="submit"]');
-  btn.innerHTML = '⏳ Placing Order...';
+  btn.innerHTML = 'ΓÅ│ Placing Order...';
   btn.disabled = true;
 
   try {
@@ -590,8 +590,8 @@ document.getElementById('checkoutAddressForm')?.addEventListener('submit', async
     showCheckoutSuccess(order);
   } catch (err) {
     console.error(err);
-    showToast('⚠️ ' + (err.message || 'Error placing order. Please try again.'));
-    btn.innerHTML = '📦 Place Order →';
+    showToast('ΓÜá∩╕Å ' + (err.message || 'Error placing order. Please try again.'));
+    btn.innerHTML = '≡ƒôª Place Order ΓåÆ';
     btn.disabled = false;
   }
 });
@@ -600,7 +600,7 @@ function showCheckoutSuccess(order) {
   const overlay = document.getElementById('checkoutOverlay');
   if (!overlay) return;
   document.getElementById('checkoutOrderId').textContent = order.id;
-  document.getElementById('checkoutOrderTotal').textContent = '₹' + order.total.toLocaleString('en-IN');
+  document.getElementById('checkoutOrderTotal').textContent = 'Γé╣' + order.total.toLocaleString('en-IN');
   overlay.classList.add('open');
 }
 function closeCheckoutSuccess() {
@@ -625,7 +625,7 @@ async function fetchRecentReviews() {
     
     let html = '';
     reviews.forEach(r => {
-      const stars = '⭐'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      const stars = 'Γ¡É'.repeat(r.rating) + 'Γÿå'.repeat(5 - r.rating);
       const photoHtml = r.photoUrl ? `<div style="height:150px; overflow:hidden; border-radius:4px; margin-bottom:12px;"><img src="${r.photoUrl}" style="width:100%; height:100%; object-fit:cover;"></div>` : '';
       
       html += `
@@ -633,7 +633,7 @@ async function fetchRecentReviews() {
           ${photoHtml}
           <div style="margin-bottom:8px; font-size:18px;">${stars}</div>
           <p style="font-size:14px; margin-bottom:12px;">"${r.comment}"</p>
-          <div style="font-size:12px; color:var(--gold); font-weight:600;">— ${r.name}</div>
+          <div style="font-size:12px; color:var(--gold); font-weight:600;">ΓÇö ${r.name}</div>
           <div style="font-size:11px; color:var(--mist); margin-top:4px;">${r.date || ''}</div>
         </div>
       `;
@@ -687,21 +687,21 @@ async function submitPhotoReview(e) {
     });
     const data = await res.json();
     if (data.success) {
-      showToast('⭐ Photo Review Submitted!');
+      showToast('Γ¡É Photo Review Submitted!');
       closePhotoReviewModal();
       fetchRecentReviews();
     } else {
-      showToast('⚠️ Error: ' + data.error);
+      showToast('ΓÜá∩╕Å Error: ' + data.error);
     }
   } catch (err) {
-    showToast('⚠️ Server error submitting review.');
+    showToast('ΓÜá∩╕Å Server error submitting review.');
   } finally {
     btn.innerHTML = 'Submit Review';
     btn.disabled = false;
   }
 }
 
-// ── MY ORDERS MODAL ──
+// ΓöÇΓöÇ MY ORDERS MODAL ΓöÇΓöÇ
 window.openMyOrdersModal = async function() {
   const customer = getLoggedInCustomer();
   if (!customer) {
@@ -714,14 +714,14 @@ window.openMyOrdersModal = async function() {
   if (!overlay || !container) return;
   
   overlay.classList.add('open');
-  container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--mist);">⏳ Loading orders...</div>';
+  container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--mist);">ΓÅ│ Loading orders...</div>';
   
   try {
     const res = await fetch('/api/orders/customer/' + encodeURIComponent(customer.email));
     const orders = await res.json();
     
     if (orders.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--mist);">📦 You have not placed any orders yet.</div>';
+      container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--mist);">≡ƒôª You have not placed any orders yet.</div>';
       return;
     }
     
@@ -742,8 +742,8 @@ window.openMyOrdersModal = async function() {
           ${o.items.join('<br>')}
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div style="font-weight: 600; color: var(--white);">Total: ₹${o.total.toLocaleString('en-IN')}</div>
-          <button onclick="reorderItems('${o.id}')" style="background: var(--gold); color: var(--black); border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px;">🔄 Re-order</button>
+          <div style="font-weight: 600; color: var(--white);">Total: Γé╣${o.total.toLocaleString('en-IN')}</div>
+          <button onclick="reorderItems('${o.id}')" style="background: var(--gold); color: var(--black); border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px;">≡ƒöä Re-order</button>
         </div>
       </div>
     `).join('');
@@ -813,14 +813,14 @@ window.reorderItems = function(orderId) {
     saveCart(cart);
     updateCartUI();
     closeMyOrdersModal();
-    showToast('✅ Items added to cart!');
+    showToast('Γ£à Items added to cart!');
     setTimeout(openCartDrawer, 500);
   } else {
-    showToast('⚠️ Could not match items to current products.');
+    showToast('ΓÜá∩╕Å Could not match items to current products.');
   }
 };
 
-// ── CUSTOMER AUTH ──
+// ΓöÇΓöÇ CUSTOMER AUTH ΓöÇΓöÇ
 function initCustomerAuth() {
   updateAuthUI();
 
@@ -859,7 +859,7 @@ function initCustomerAuth() {
     } catch(err) {
       showAuthError('Server error. Try again.');
     } finally {
-      document.getElementById('sendOtpBtn').textContent = 'Send OTP →';
+      document.getElementById('sendOtpBtn').textContent = 'Send OTP ΓåÆ';
     }
   });
 
@@ -881,7 +881,7 @@ function initCustomerAuth() {
         loginCustomer(data.customer);
         closeAuthModal();
         updateAuthUI();
-        showToast('👋 Welcome, ' + data.customer.name + '!');
+        showToast('≡ƒæï Welcome, ' + data.customer.name + '!');
       } else {
         showAuthError(data.error || 'Invalid or expired OTP.');
       }
@@ -926,7 +926,7 @@ function initCustomerAuth() {
         loginCustomer(data.customer);
         closeAuthModal();
         updateAuthUI();
-        showToast('🎉 Welcome to Farmers Farm, ' + name + '!');
+        showToast('≡ƒÄë Welcome to Farmers Farm, ' + name + '!');
       } else {
         showAuthError(data.error || 'Signup failed.');
       }
@@ -951,7 +951,7 @@ function initCustomerAuth() {
     logoutCustomer();
     updateAuthUI();
     document.getElementById('userDropdown')?.classList.remove('show');
-    showToast('👋 Logged out successfully.');
+    showToast('≡ƒæï Logged out successfully.');
   });
 
   // Auth modal close
@@ -972,7 +972,7 @@ function closeAuthModal() {
   document.getElementById('authOverlay')?.classList.remove('open');
 }
 
-// ── GOOGLE LOGIN CALLBACK ──
+// ΓöÇΓöÇ GOOGLE LOGIN CALLBACK ΓöÇΓöÇ
 window.handleGoogleLogin = async function(response) {
   try {
     const res = await fetch('/api/customers/google-login', {
@@ -985,7 +985,7 @@ window.handleGoogleLogin = async function(response) {
       loginCustomer(data.customer);
       closeAuthModal();
       updateAuthUI();
-      showToast('👋 Welcome, ' + data.customer.name + '!');
+      showToast('≡ƒæï Welcome, ' + data.customer.name + '!');
     } else {
       showAuthError(data.error || 'Google login failed.');
     }
@@ -996,7 +996,7 @@ window.handleGoogleLogin = async function(response) {
 
 function showAuthError(msg) {
   const el = document.getElementById('authError');
-  if (el) { el.textContent = '❌ ' + msg; el.classList.add('show'); }
+  if (el) { el.textContent = 'Γ¥î ' + msg; el.classList.add('show'); }
 }
 
 function toggleUserDropdown() {
@@ -1026,9 +1026,9 @@ function updateAuthUI() {
     }
   } else {
     if (navUserIcon) {
-      navUserIcon.textContent = '👤';
+      navUserIcon.textContent = '≡ƒæñ';
       navUserIcon.style.background = 'none';
-      navUserIcon.style.color = 'var(--mist)';
+      navUserIcon.style.color = 'var(--green-deep)';
       navUserIcon.style.fontSize = '20px';
     }
     if (loggedInView && loggedOutView) {
@@ -1038,7 +1038,7 @@ function updateAuthUI() {
   }
 }
 
-// ── TOAST ──
+// ΓöÇΓöÇ TOAST ΓöÇΓöÇ
 function showToast(msg) {
   const t = document.getElementById('toast');
   if (!t) return;
@@ -1047,7 +1047,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-// ── FEEDBACK SUBMIT ──
+// ΓöÇΓöÇ FEEDBACK SUBMIT ΓöÇΓöÇ
 function submitFeedback() {
   const name = document.getElementById('fname').value.trim();
   const contact = document.getElementById('fcontact').value.trim();
@@ -1056,11 +1056,11 @@ function submitFeedback() {
   const msg = document.getElementById('fmsg').value.trim();
 
   if (!name || !contact || !msg) {
-    showToast('⚠️ Please fill in all required fields.');
+    showToast('ΓÜá∩╕Å Please fill in all required fields.');
     return;
   }
   saveFeedback({ name, contact, city, packet, message: msg, date: new Date().toLocaleString('en-IN') });
-  showToast('🙏 Thank you, ' + name + '! We\'ll be in touch soon.');
+  showToast('≡ƒÖÅ Thank you, ' + name + '! We\'ll be in touch soon.');
   document.getElementById('fname').value = '';
   document.getElementById('fcontact').value = '';
   document.getElementById('fcity').value = '';
@@ -1068,7 +1068,7 @@ function submitFeedback() {
   document.getElementById('fpacket').value = '';
 }
 
-// ── SCROLL ANIMATIONS ──
+// ΓöÇΓöÇ SCROLL ANIMATIONS ΓöÇΓöÇ
 function initScrollAnimations() {
   const reveals = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
   if (reveals.length === 0) return;
@@ -1078,7 +1078,7 @@ function initScrollAnimations() {
   reveals.forEach(el => observer.observe(el));
 }
 
-// ── NAV SCROLL ──
+// ΓöÇΓöÇ NAV SCROLL ΓöÇΓöÇ
 function initNavScroll() {
   const nav = document.querySelector('nav');
   const sections = document.querySelectorAll('section[id]');
@@ -1091,7 +1091,7 @@ function initNavScroll() {
   });
 }
 
-// ── HAMBURGER ──
+// ΓöÇΓöÇ HAMBURGER ΓöÇΓöÇ
 function initHamburger() {
   const hamburger = document.getElementById('hamburger');
   const navLinks = document.querySelector('.nav-links');
@@ -1105,7 +1105,7 @@ function initHamburger() {
   });
 }
 
-// ── BACK TO TOP ──
+// ΓöÇΓöÇ BACK TO TOP ΓöÇΓöÇ
 function initBackToTop() {
   const btn = document.getElementById('backToTop');
   if (!btn) return;
@@ -1113,7 +1113,7 @@ function initBackToTop() {
   btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 }
 
-// ── CURSOR SPARKLE ──
+// ΓöÇΓöÇ CURSOR SPARKLE ΓöÇΓöÇ
 function initCursorSparkle() {
   if (window.innerWidth < 768) return;
   let lastX = 0, lastY = 0, throttle = false;
@@ -1131,7 +1131,7 @@ function initCursorSparkle() {
     sparkle.style.top = e.clientY + 'px';
     document.body.appendChild(sparkle);
     setTimeout(() => sparkle.remove(), 600);
-// ── TESTIMONIAL AUTO-SCROLL ──
+// ΓöÇΓöÇ TESTIMONIAL AUTO-SCROLL ΓöÇΓöÇ
 function initTestimonialScroll() {
   const track = document.getElementById('testimonialTrack');
   if (!track) return;
@@ -1147,7 +1147,7 @@ function initTestimonialScroll() {
   dots.forEach((d, i) => d.addEventListener('click', () => scrollToSlide(i)));
 }
 
-// ── ANIMATED COUNTERS ──
+// ΓöÇΓöÇ ANIMATED COUNTERS ΓöÇΓöÇ
 function initCounters() {
   const counters = document.querySelectorAll('[data-count]');
   if (counters.length === 0) return;
@@ -1181,7 +1181,7 @@ function animateCounter(el) {
   requestAnimationFrame(update);
 }
 
-// ── MY ACCOUNT ──
+// ΓöÇΓöÇ MY ACCOUNT ΓöÇΓöÇ
 window.openAccountModal = function() {
   document.getElementById('accountOverlay')?.classList.add('open');
   const customer = getLoggedInCustomer();
@@ -1242,14 +1242,14 @@ window.saveProfile = async function(e) {
       body: JSON.stringify(updatedData)
     });
     if(res.ok) {
-      showToast('✅ Profile updated successfully!');
+      showToast('Γ£à Profile updated successfully!');
       const newCustomer = { ...customer, ...updatedData };
       localStorage.setItem('ff_customer', JSON.stringify(newCustomer));
     } else {
-      showToast('⚠️ Failed to update profile');
+      showToast('ΓÜá∩╕Å Failed to update profile');
     }
   } catch(err) {
-    showToast('⚠️ Error updating profile');
+    showToast('ΓÜá∩╕Å Error updating profile');
   }
 };
 
@@ -1257,7 +1257,7 @@ function renderMyWishlist() {
   const container = document.getElementById('myWishlistGrid');
   const wishlistIds = getWishlist();
   if(wishlistIds.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding: 30px; color: rgba(228,237,231,0.5); grid-column: 1/-1;">Your wishlist is empty. 🌿</div>';
+    container.innerHTML = '<div style="text-align:center; padding: 30px; color: rgba(228,237,231,0.5); grid-column: 1/-1;">Your wishlist is empty. ≡ƒî┐</div>';
     return;
   }
   
@@ -1266,10 +1266,10 @@ function renderMyWishlist() {
   
   container.innerHTML = wishProducts.map(p => `
     <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; text-align: center; position: relative;">
-      <button onclick="toggleWishlist(event, '${p.id}'); setTimeout(renderMyWishlist, 100);" style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; color: var(--gold); font-size: 18px; cursor: pointer;">✕</button>
+      <button onclick="toggleWishlist(event, '${p.id}'); setTimeout(renderMyWishlist, 100);" style="position: absolute; top: 5px; right: 5px; background: transparent; border: none; color: var(--gold); font-size: 18px; cursor: pointer;">Γ£ò</button>
       <img src="${p.image || '/images/pouch.png'}" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px;">
       <div style="font-size: 13px; color: white; font-weight: 600;">${p.name}</div>
-      <div style="color: var(--gold); font-size: 12px; margin-top: 5px;">₹${p.price}</div>
+      <div style="color: var(--gold); font-size: 12px; margin-top: 5px;">Γé╣${p.price}</div>
       <button onclick="addToCart('${p.id}'); showToast('Added to Cart');" style="margin-top: 10px; background: var(--gold); border: none; color: black; font-size: 11px; padding: 5px 10px; border-radius: 4px; cursor: pointer; width: 100%;">Move to Cart</button>
     </div>
   `).join('');
@@ -1292,7 +1292,7 @@ async function fetchAndRenderMyOrders() {
     const orders = await res.json();
     
     if (orders.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding: 30px; color: rgba(228,237,231,0.5);">No orders found. Time to stock up on some tea! ☕</div>';
+      container.innerHTML = '<div style="text-align:center; padding: 30px; color: rgba(228,237,231,0.5);">No orders found. Time to stock up on some tea! Γÿò</div>';
       return;
     }
     
@@ -1322,12 +1322,12 @@ async function fetchAndRenderMyOrders() {
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; gap: 10px;">
               ${o.status === 'Delivered' ? `
-                ${o.review ? `<span style="font-size: 12px; color: var(--gold);">⭐ Reviewed (${o.review.rating}/5)</span>` : `<button onclick="openReviewModal('${o.id}')" style="background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">⭐ Review</button>`}`
-                ${o.complaint ? `<span style="font-size: 12px; color: #e74c3c;">⚠️ Complaint Filed</span>` : `<button onclick="openComplaintModal('${o.id}')" style="background: none; border: 1px solid #e74c3c; color: #e74c3c; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">⚠️ Complain</button>`}`
+                ${o.review ? `<span style="font-size: 12px; color: var(--gold);">Γ¡É Reviewed (${o.review.rating}/5)</span>` : `<button onclick="openReviewModal('${o.id}')" style="background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Γ¡É Review</button>`}`
+                ${o.complaint ? `<span style="font-size: 12px; color: #e74c3c;">ΓÜá∩╕Å Complaint Filed</span>` : `<button onclick="openComplaintModal('${o.id}')" style="background: none; border: 1px solid #e74c3c; color: #e74c3c; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">ΓÜá∩╕Å Complain</button>`}`
               : `<span style="font-size: 12px; color: var(--mist);">Options available after delivery</span>`}
             </div>
             <div style="text-align: right; font-weight: bold; color: var(--gold);">
-              Total: ₹${o.total.toLocaleString('en-IN')}
+              Total: Γé╣${o.total.toLocaleString('en-IN')}
             </div>
           </div>
         </div>
@@ -1341,7 +1341,7 @@ async function fetchAndRenderMyOrders() {
 }
 
 
-// ── ORDER REVIEWS & COMPLAINTS ──
+// ΓöÇΓöÇ ORDER REVIEWS & COMPLAINTS ΓöÇΓöÇ
 function openReviewModal(orderId) {
   document.getElementById('reviewOrderId').value = orderId;
   document.getElementById('reviewOrderTitle').textContent = 'For Order ' + orderId;
@@ -1382,14 +1382,14 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ rating, comment })
       });
       if (res.ok) {
-        showToast('⭐ Thank you for your review!');
+        showToast('Γ¡É Thank you for your review!');
         closeReviewModal();
         fetchAndRenderMyOrders(); // Refresh to show "Reviewed"
       } else {
-        showToast('⚠️ Error submitting review.');
+        showToast('ΓÜá∩╕Å Error submitting review.');
       }
     } catch(err) {
-      showToast('⚠️ Server error.');
+      showToast('ΓÜá∩╕Å Server error.');
     } finally {
       btn.innerHTML = 'Submit Review';
       btn.disabled = false;
@@ -1412,14 +1412,14 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ text })
       });
       if (res.ok) {
-        showToast('⚠️ Complaint registered. We will contact you soon.');
+        showToast('ΓÜá∩╕Å Complaint registered. We will contact you soon.');
         closeComplaintModal();
         fetchAndRenderMyOrders(); // Refresh to show "Complaint Filed"
       } else {
-        showToast('⚠️ Error submitting complaint.');
+        showToast('ΓÜá∩╕Å Error submitting complaint.');
       }
     } catch(err) {
-      showToast('⚠️ Server error.');
+      showToast('ΓÜá∩╕Å Server error.');
     } finally {
       btn.innerHTML = 'Submit Complaint';
       btn.disabled = false;
@@ -1462,13 +1462,13 @@ window.handleSubscribe = async function(e) {
       body: JSON.stringify({ email })
     });
     if (res.ok) {
-      showToast('🎉 Thank you for subscribing to our Newsletter!');
+      showToast('≡ƒÄë Thank you for subscribing to our Newsletter!');
       document.getElementById('subscribeEmail').value = '';
     } else {
-      showToast('⚠️ Could not subscribe, please try again.');
+      showToast('ΓÜá∩╕Å Could not subscribe, please try again.');
     }
   } catch (err) {
-    showToast('⚠️ Error connecting to server.');
+    showToast('ΓÜá∩╕Å Error connecting to server.');
   } finally {
     btn.innerHTML = 'Subscribe';
     btn.disabled = false;
