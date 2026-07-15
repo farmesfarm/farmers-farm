@@ -10,7 +10,7 @@
   --green-leaf: #4A8C5C;
   --gold: #C9A84C;
   --gold-light: #E8C96A;
-  --cream: #F7F2E8;
+  --cream: #dfd3b6;
   --earth: #7A5C3A;
   --mist: #E4EDE7;
   --white: #FFFFFF;
@@ -534,7 +534,7 @@ section { padding: 88px 48px; }
 .add-btn:hover { background: var(--green-deep) !important; color: var(--white) !important; }
 
 /* ── TESTIMONIALS (Glassmorphism) ── */
-.testimonials-section { background: var(--white); overflow: hidden; position: relative; }
+.testimonials-section { background: transparent; overflow: hidden; position: relative; }
 .testimonials-section::before {
   content: ''; position: absolute;
   width: 300px; height: 300px; border-radius: 50%;
@@ -591,7 +591,7 @@ section { padding: 88px 48px; }
 .testimonial-dot.active { background: var(--gold); width: 24px; border-radius: 4px; }
 
 /* ── LOCATION ── */
-.location-section { background: var(--mist); }
+.location-section { background: transparent; }
 .location-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
 .map-placeholder {
   background: linear-gradient(135deg, rgba(46,92,63,0.85), rgba(27,58,45,0.9));
