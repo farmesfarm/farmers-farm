@@ -1,4 +1,4 @@
-const CACHE_NAME = 'farmers-farm-cache-v2';
+const CACHE_NAME = 'farmers-farm-cache-v5';
 const urlsToCache = [
   '/',
   '/index.html',
