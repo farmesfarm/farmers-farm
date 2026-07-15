@@ -102,13 +102,37 @@ function logoutCustomer() {
 }
 
 // ── PRELOADER ──
+// Generate floating gold particles
+(function initPreloaderParticles() {
+  const container = document.getElementById('preloaderParticles');
+  if (!container) return;
+  const emojis = ['🍃', '✨', '🌿', '☕', '🌱'];
+  for (let i = 0; i < 20; i++) {
+    const el = document.createElement('div');
+    el.className = 'pl-particle';
+    const size = 4 + Math.random() * 6;
+    el.style.cssText = `
+      width: ${size}px; height: ${size}px;
+      left: ${Math.random() * 100}%;
+      bottom: -10px;
+      animation-duration: ${5 + Math.random() * 8}s;
+      animation-delay: ${Math.random() * 6}s;
+      opacity: 0;
+    `;
+    container.appendChild(el);
+  }
+})();
+
 window.addEventListener('load', () => {
   const preloader = document.getElementById('preloader');
   if (preloader) {
-    preloader.classList.add('hide');
-    setTimeout(() => preloader.remove(), 600);
+    setTimeout(() => {
+      preloader.classList.add('hide');
+      setTimeout(() => preloader.remove(), 900);
+    }, 300);
   }
 });
+
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', async () => {
@@ -156,8 +180,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  await fetchProducts();
-  renderProducts();
+  fetchProducts().then(() => renderProducts());
+  
+  // Fallback to hide preloader if window.load fails or takes too long
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    setTimeout(() => {
+      preloader.classList.add('hide');
+      setTimeout(() => preloader.remove(), 600);
+    }, 1000);
+  }
+
   initScrollAnimations();
   initNavScroll();
   initHamburger();
