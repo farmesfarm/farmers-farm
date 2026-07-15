@@ -3,11 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1B3A2D">
+<link rel="manifest" href="/manifest.json">
 <title>Admin Dashboard – Farmers Farm</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -42,6 +45,10 @@
       <button class="sidebar-link" data-page="feedbacks"><span class="sidebar-link-icon">💬</span> Feedbacks <span class="sidebar-link-badge" id="feedbacksBadge" style="display:none;">0</span></button>
       <button class="sidebar-link" data-page="complaints"><span class="sidebar-link-icon">⚠️</span> Complaints <span class="sidebar-link-badge" id="complaintsBadge" style="display:none; background:#e74c3c;">0</span></button>
       <button class="sidebar-link" data-page="customers"><span class="sidebar-link-icon">👥</span> Customers</button>
+      <button class="sidebar-link" data-page="promos"><span class="sidebar-link-icon">🎁</span> Promo Codes</button>
+      <button class="sidebar-link" data-page="reviews"><span class="sidebar-link-icon">⭐</span> Photo Reviews</button>
+      <button class="sidebar-link" data-page="blogs"><span class="sidebar-link-icon">📝</span> Blogs</button>
+      <button class="sidebar-link" data-page="subscribers"><span class="sidebar-link-icon">💌</span> Subscribers <span class="sidebar-link-badge" id="subscribersBadge" style="display:none;">0</span></button>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user">
@@ -64,6 +71,23 @@
         <div class="stat-card"><div class="stat-card-icon">💬</div><div class="stat-card-value" id="statFeedbacks">0</div><div class="stat-card-label">Feedbacks</div></div>
         <div class="stat-card"><div class="stat-card-icon">💰</div><div class="stat-card-value" id="statRevenue">₹0</div><div class="stat-card-label">Total Revenue</div></div>
       </div>
+      
+      <!-- CHARTS -->
+      <div class="charts-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px;">
+        <div class="panel">
+          <div class="panel-header"><h3 class="panel-title">Revenue Trend (Last 7 Days)</h3></div>
+          <div class="panel-body">
+            <canvas id="salesChart" style="max-height: 250px;"></canvas>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3 class="panel-title">Top Products Sold</h3></div>
+          <div class="panel-body">
+            <canvas id="productsChart" style="max-height: 250px;"></canvas>
+          </div>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-header"><h3 class="panel-title">Quick Actions</h3></div>
         <div class="panel-body" style="display:flex;gap:12px;flex-wrap:wrap;">
@@ -111,7 +135,138 @@
       <div class="panel"><div class="panel-header"><h3 class="panel-title">All Customers</h3></div><div class="panel-body" id="customersContainer"></div></div>
     </div>
 
+    <!-- PROMO CODES -->
+    <div class="admin-page" id="page-promos">
+      <div class="page-header"><h1>Promo Codes</h1><p>Manage discount codes for your customers.</p></div>
+      <div class="panel">
+        <div class="panel-header"><h3 class="panel-title">Add New Promo</h3></div>
+        <div class="panel-body">
+          <form id="promoForm" style="display:flex; gap:10px; align-items:flex-end;">
+            <div style="flex:1;"><label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block;">Code (e.g. FFM10)</label><input type="text" id="promoCode" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;"></div>
+            <div style="flex:1;"><label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block;">Discount Percentage (%)</label><input type="number" id="promoDiscount" required min="1" max="100" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;"></div>
+            <button type="submit" class="btn-save" style="padding:10px 20px;">Create Promo</button>
+          </form>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:20px;">
+        <div class="panel-header"><h3 class="panel-title">Active Promos</h3></div>
+        <div class="panel-body" style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Code</th><th>Discount</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="promosBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div class="admin-page" id="page-reviews">
+      <div class="page-header"><h1>Product Photo Reviews</h1><p>Manage customer photo reviews.</p></div>
+      <div class="panel">
+        <div class="panel-header"><h3 class="panel-title">All Reviews</h3></div>
+        <div class="panel-body" style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Photo</th><th>Product ID</th><th>Customer</th><th>Rating</th><th>Comment</th><th>Actions</th></tr></thead>
+            <tbody id="reviewsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOGS -->
+    <div class="admin-page" id="page-blogs">
+      <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h1>Blog Posts</h1>
+          <p>Manage your SEO-optimized blog content</p>
+        </div>
+        <button class="action-btn" onclick="openBlogModal()">+ Write New Post</button>
+      </div>
+      <div class="panel">
+        <div class="panel-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="blogsTableBody">
+              <tr><td colspan="5" style="text-align:center;">Loading blogs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- SUBSCRIBERS -->
+    <div class="admin-page" id="page-subscribers">
+      <div class="page-header">
+        <h1>Newsletter Subscribers</h1>
+        <p>List of customers who want to hear from you</p>
+      </div>
+      <div class="panel">
+        <div class="panel-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Email Address</th>
+                <th>Subscribed On</th>
+              </tr>
+            </thead>
+            <tbody id="subscribersTableBody">
+              <tr><td colspan="2" style="text-align:center;">Loading subscribers...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </main>
+</div>
+
+<!-- BLOG MODAL -->
+<div class="modal-overlay" id="blogModalOverlay">
+  <div class="modal" style="max-width:800px; width:90%;">
+    <div class="modal-header">
+      <h3 id="blogModalTitle">Create Blog Post</h3>
+      <button class="modal-close" onclick="closeBlogModal()">✕</button>
+    </div>
+    <form id="blogForm">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="blogTitle" class="form-control" required placeholder="The Benefits of Herbal Tea">
+      </div>
+      <div class="form-group">
+        <label>Slug (URL)</label>
+        <input type="text" id="blogSlug" class="form-control" required placeholder="benefits-of-herbal-tea" pattern="[a-z0-9-]+">
+      </div>
+      <div class="form-group">
+        <label>Image URL (Optional)</label>
+        <input type="text" id="blogImageUrl" class="form-control" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label>Excerpt (Short description)</label>
+        <textarea id="blogExcerpt" class="form-control" rows="2" placeholder="Discover why herbal tea is good..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Content (HTML allowed)</label>
+        <textarea id="blogContent" class="form-control" rows="10" required></textarea>
+      </div>
+      <div class="form-group">
+        <label>SEO Meta Description</label>
+        <input type="text" id="blogMeta" class="form-control" placeholder="SEO description...">
+      </div>
+      <div class="form-group">
+        <label>SEO Keywords (comma separated)</label>
+        <input type="text" id="blogKeywords" class="form-control" placeholder="tea, herbal, health">
+      </div>
+      <button type="submit" class="btn-action" style="width:100%;">Save Post</button>
+    </form>
+  </div>
 </div>
 
 <!-- PRODUCT MODAL -->

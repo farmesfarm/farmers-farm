@@ -46,6 +46,13 @@
     </div>
     
     <div class="cart-footer" style="padding: 30px; background: rgba(247,242,232,0.5);">
+      <div class="promo-section" style="margin-bottom: 24px; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 24px; max-width: 300px;">
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="promoInputCart" placeholder="Promo code" style="flex:1; padding:10px; border-radius:6px; border:1px solid rgba(0,0,0,0.1); background:#fff; text-transform:uppercase;">
+          <button id="applyPromoBtnCart" style="padding:0 16px; border-radius:6px; border:none; background:var(--gold); color:#111; font-weight:600; cursor:pointer;" onclick="document.getElementById('promoInput').value = document.getElementById('promoInputCart').value; document.getElementById('applyPromoBtn').click();">Apply</button>
+        </div>
+        <div id="promoMessageCart" style="font-size:12px; margin-top:6px; min-height:15px;"></div>
+      </div>
       <div class="cart-total" style="margin-bottom: 24px;">
         <span class="cart-total-label">Subtotal</span>
         <span class="cart-total-price" id="cartTotal">₹0</span>
@@ -85,14 +92,7 @@
     <div class="auth-title" style="margin-bottom:4px;">Delivery Details</div>
     <div class="auth-subtitle" style="margin-bottom:12px;">Where should we deliver your tea?</div>
 
-    <!-- Payment Badge -->
-    <div style="display:flex; align-items:center; gap:8px; background:rgba(45,90,39,0.2); border:1px solid rgba(45,90,39,0.5); border-radius:8px; padding:10px 14px; margin-bottom:18px;">
-      <span style="font-size:20px;">📦</span>
-      <div>
-        <div style="font-size:13px; font-weight:700; color:var(--gold);">Cash on Delivery</div>
-        <div style="font-size:11px; color:var(--mist); opacity:0.8;">Pay when your order arrives at your doorstep</div>
-      </div>
-    </div>
+
 
     <button class="location-btn" id="getLocationBtn" type="button">
       <span class="loc-icon">📍</span> Use My Current Location
@@ -115,7 +115,26 @@
       </div>
       <input type="hidden" id="checkoutLat">
       <input type="hidden" id="checkoutLng">
-      <button type="submit" class="auth-btn">📦 Place Order (COD) →</button>
+      <div class="auth-field" style="margin-bottom: 18px;">
+        <label>Payment Method</label>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid var(--gold);" onclick="this.style.borderColor='var(--gold)'; this.nextElementSibling.style.borderColor='transparent';">
+            <input type="radio" name="paymentMethod" value="cod" checked style="accent-color: var(--gold); width: 18px; height: 18px; cursor: pointer;">
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 14px; color: var(--gold); font-weight: 600;">Cash on Delivery (COD)</span>
+              <span style="font-size: 11px; color: var(--mist);">Pay when order arrives at your doorstep</span>
+            </div>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid transparent;" onclick="this.style.borderColor='var(--gold)'; this.previousElementSibling.style.borderColor='transparent';">
+            <input type="radio" name="paymentMethod" value="online" style="accent-color: var(--gold); width: 18px; height: 18px; cursor: pointer;">
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 14px; color: var(--white); font-weight: 600;">Online Payment</span>
+              <span style="font-size: 11px; color: var(--mist);">UPI, Credit/Debit Cards (Setup pending)</span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="auth-btn">📦 Place Order →</button>
     </form>
   </div>
 </div>

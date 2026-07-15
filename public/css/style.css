@@ -43,6 +43,20 @@ body {
   overflow-x: hidden;
 }
 
+/* ── PREMIUM SCROLLBAR & SELECTION ── */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { 
+  background: var(--green-mid); 
+  border-radius: 5px; 
+  border: 2px solid var(--cream);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--green-leaf); }
+
+::selection { background: var(--gold); color: #fff; }
+::-moz-selection { background: var(--gold); color: #fff; }
+
+
 /* ── PRELOADER ── */
 .preloader {
   position: fixed; inset: 0; z-index: 99999;
@@ -299,23 +313,7 @@ nav.scrolled {
   50%       { transform: translateX(-50%) translateY(8px); }
 }
 
-/* ── SCROLL ANIMATIONS ── */
-.reveal {
-  opacity: 0; transform: translateY(40px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-}
-.reveal.visible { opacity: 1; transform: translateY(0); }
-.reveal-left {
-  opacity: 0; transform: translateX(-50px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-}
-.reveal-left.visible { opacity: 1; transform: translateX(0); }
-.reveal-right {
-  opacity: 0; transform: translateX(50px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-}
-.reveal-right.visible { opacity: 1; transform: translateX(0); }
-
+/* ── SCROLL ANIMATIONS (Handled by AOS) ── */
 /* ── SECTION WRAPPER ── */
 section { padding: 88px 48px; }
 .section-label {
@@ -1161,4 +1159,34 @@ footer p { font-size: 12px; }
   .packets-grid { grid-template-columns: 1fr; }
   .ingredients-grid { grid-template-columns: 1fr 1fr; }
   .contacts-grid { grid-template-columns: 1fr; }
+}
+
+/* ── PREMIUM TOAST NOTIFICATION ── */
+.toast {
+  visibility: hidden;
+  min-width: 280px;
+  background: rgba(27, 58, 45, 0.9);
+  backdrop-filter: blur(12px);
+  color: var(--white);
+  text-align: center;
+  border-radius: 8px;
+  padding: 16px;
+  position: fixed;
+  z-index: 10000;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%) translateY(20px);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  border: 1px solid rgba(201,168,76,0.4);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  bottom: 50px;
 }

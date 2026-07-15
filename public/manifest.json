@@ -1,0 +1,21 @@
+{
+  "name": "Farmers Farm - 7 TEA AM",
+  "short_name": "Farmers Farm",
+  "description": "Premium Ayurvedic Teas and Wellness Products.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F2E8",
+  "theme_color": "#1B3A2D",
+  "icons": [
+    {
+      "src": "/images/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

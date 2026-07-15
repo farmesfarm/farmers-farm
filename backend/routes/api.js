@@ -14,6 +14,21 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET || 'YOUR_API_SECRET'
 });
 
+// Multer Setup for Local Uploads (Reviews)
+const reviewUploadDir = path.join(__dirname, '../../public/uploads/reviews');
+if (!fs.existsSync(reviewUploadDir)) {
+  fs.mkdirSync(reviewUploadDir, { recursive: true });
+}
+const reviewStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, reviewUploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'review-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const reviewUpload = multer({ storage: reviewStorage });
 // OTP Storage (Email -> { otp, expiresAt })
 const otpStorage = new Map();
 
@@ -30,6 +45,30 @@ const transporter = nodemailer.createTransport({
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID_HERE';
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
+// --- EMAIL NOTIFICATION SERVICE ---
+const sendOrderEmail = async (toEmail, subject, text) => {
+  console.log(`[EMAIL INITIATED] Attempting to send email to: ${toEmail}`);
+  if (!toEmail) {
+    console.log('[EMAIL ABORTED] No email address provided.');
+    return;
+  }
+  try {
+    // Format text to HTML to avoid Spam filters
+    const htmlContent = text.replace(/\n/g, '<br>');
+    await transporter.sendMail({
+      from: `"Farmers Farm" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: subject,
+      html: `<div style="font-family: sans-serif; padding: 20px; color: #333;">
+              <h2 style="color: #2D5A27;">Farmers Farm</h2>
+              <p>${htmlContent}</p>
+             </div>`
+    });
+    console.log(`✉️ [EMAIL SENT] Successfully sent to ${toEmail}`);
+  } catch (err) {
+    console.error(`✉️ [EMAIL FAILED] Could not send to ${toEmail}:`, err);
+  }
+};
 
 // Initialize Firebase Admin
 const admin = require('firebase-admin');
@@ -209,6 +248,107 @@ router.delete('/products/:id', verifyAdmin, async (req, res) => {
   }
 });
 
+// --- PROMO CODES ---
+router.get('/admin/promos', verifyAdmin, async (req, res) => {
+  try {
+    const snapshot = await db.collection('promos').get();
+    const promos = [];
+    snapshot.forEach(doc => {
+      promos.push({ id: doc.id, ...doc.data() });
+    });
+    res.json(promos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/admin/promos', verifyAdmin, async (req, res) => {
+  const { code, discountPercentage, active } = req.body;
+  if (!code || !discountPercentage) {
+    return res.status(400).json({ error: 'Code and discount percentage are required' });
+  }
+  
+  try {
+    const promoCode = code.toUpperCase().trim();
+    await db.collection('promos').doc(promoCode).set({
+      code: promoCode,
+      discountPercentage: Number(discountPercentage),
+      active: active !== false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/admin/promos/:id', verifyAdmin, async (req, res) => {
+  try {
+    await db.collection('promos').doc(req.params.id).delete();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/promos/validate', async (req, res) => {
+  const { code, total } = req.body;
+  if (!code) return res.status(400).json({ error: 'Code is required' });
+  
+  try {
+    const promoCode = code.toUpperCase().trim();
+    const doc = await db.collection('promos').doc(promoCode).get();
+    
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Invalid Promo Code' });
+    }
+    
+    const data = doc.data();
+    if (!data.active) {
+      return res.status(400).json({ error: 'Promo Code is no longer active' });
+    }
+    
+    const discountAmount = (total * data.discountPercentage) / 100;
+    const finalTotal = total - discountAmount;
+    
+    res.json({ 
+      success: true, 
+      promoCode: data.code,
+      discountPercentage: data.discountPercentage,
+      discountAmount,
+      finalTotal 
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- ABANDONED CART RECOVERY ---
+router.post('/cart/sync', async (req, res) => {
+  const { email, name, items, total } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  try {
+    if (!items || items.length === 0) {
+      // If cart is emptied, remove the tracking
+      await db.collection('abandoned_carts').doc(email).delete();
+    } else {
+      // Update cart state
+      await db.collection('abandoned_carts').doc(email).set({
+        email,
+        name,
+        items,
+        total,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        recoveryEmailSent: false
+      });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- ORDERS ---
 router.get('/orders', async (req, res) => {
   try {
@@ -239,8 +379,21 @@ router.post('/orders', async (req, res) => {
   order.createdAt = admin.firestore.FieldValue.serverTimestamp();
 
   try {
-    const docRef = await db.collection('orders').add(order);
-    res.json({ success: true, order: { id: docRef.id, ...order } });
+    // Save order using its generated ORD-XXXX ID as the document ID
+    await db.collection('orders').doc(order.id).set(order);
+    
+    // Clear abandoned cart if it exists
+    if (order.customer?.email) {
+      await db.collection('abandoned_carts').doc(order.customer.email).delete().catch(() => {});
+    }
+    
+    // Send Order Confirmation Email
+    const email = order.customer?.email;
+    const subject = `Order Confirmed - Farmers Farm (#${order.id})`;
+    const message = `Hi ${order.customer?.name || 'Customer'},\n\nYour order #${order.id} for Farmers Farm has been confirmed! 🌿\n\nTotal: ₹${order.total.toLocaleString('en-IN')}\nPayment: ${order.paymentMethod}\n\nWe will notify you once it's shipped. Thank you!`;
+    sendOrderEmail(email, subject, message);
+
+    res.json({ success: true, order });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -251,7 +404,37 @@ router.put('/orders/:id/status', verifyAdmin, async (req, res) => {
   const { status } = req.body;
 
   try {
-    await db.collection('orders').doc(id).update({ status });
+    // Find the order by its custom ID (ORD-XXXX)
+    const snapshot = await db.collection('orders').where('id', '==', id).get();
+    let docRef;
+    let orderData;
+
+    if (!snapshot.empty) {
+      docRef = snapshot.docs[0].ref;
+      orderData = snapshot.docs[0].data();
+    } else {
+      // Fallback: Check if it exists by document ID
+      const doc = await db.collection('orders').doc(id).get();
+      if (!doc.exists) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+      docRef = doc.ref;
+      orderData = doc.data();
+    }
+
+    await docRef.update({ status });
+    
+    // Send Email notification
+    const email = orderData.customer?.email;
+    const subject = `Order Update - Farmers Farm (#${id})`;
+    let message = `Update on your Farmers Farm order #${id}: \n\nYour order is now ${status}.`;
+    if (status === 'Shipped') {
+      message += ` 🚚 It is on its way to you!`;
+    } else if (status === 'Delivered') {
+      message += ` ✅ It has been delivered. Enjoy your tea! 🍵`;
+    }
+    sendOrderEmail(email, subject, message);
+
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -292,6 +475,162 @@ router.post('/orders/:id/complaint', async (req, res) => {
     await db.collection('orders').doc(id).update({
       complaint: { text, date: new Date().toLocaleString('en-IN') }
     });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- PRODUCT REVIEWS (PHOTO REVIEWS) ---
+router.post('/products/:id/reviews', reviewUpload.single('photo'), async (req, res) => {
+  const { id } = req.params; // Product ID
+  const { rating, comment, name } = req.body;
+  
+  try {
+    const reviewData = {
+      productId: id,
+      name: name || 'Anonymous',
+      rating: parseInt(rating) || 5,
+      comment: comment || '',
+      date: new Date().toLocaleString('en-IN'),
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (req.file) {
+      // req.file.filename will be saved in public/uploads/reviews/
+      reviewData.photoUrl = `/uploads/reviews/${req.file.filename}`;
+    }
+
+    const docRef = await db.collection('product_reviews').add(reviewData);
+    res.json({ success: true, review: { id: docRef.id, ...reviewData } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/products/:id/reviews', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const snapshot = await db.collection('product_reviews')
+      .where('productId', '==', id)
+      .orderBy('createdAt', 'desc')
+      .get();
+      
+    const reviews = [];
+    snapshot.forEach(doc => {
+      reviews.push({ id: doc.id, ...doc.data() });
+    });
+    res.json(reviews);
+  } catch (error) {
+    // If index is missing, fallback without orderBy
+    try {
+       const snapshot = await db.collection('product_reviews').where('productId', '==', id).get();
+       const reviews = [];
+       snapshot.forEach(doc => reviews.push({ id: doc.id, ...doc.data() }));
+       res.json(reviews.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
+    } catch(err) {
+       res.status(500).json({ error: err.message });
+    }
+  }
+});
+
+router.get('/admin/reviews', verifyAdmin, async (req, res) => {
+  try {
+    const snapshot = await db.collection('product_reviews').orderBy('createdAt', 'desc').get();
+    const reviews = [];
+    snapshot.forEach(doc => reviews.push({ id: doc.id, ...doc.data() }));
+    res.json(reviews);
+  } catch (error) {
+    try {
+      const snapshot = await db.collection('product_reviews').get();
+      const reviews = [];
+      snapshot.forEach(doc => reviews.push({ id: doc.id, ...doc.data() }));
+      res.json(reviews);
+    } catch(err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+});
+
+router.get('/reviews', async (req, res) => {
+  try {
+    const snapshot = await db.collection('product_reviews').orderBy('createdAt', 'desc').limit(20).get();
+    const reviews = [];
+    snapshot.forEach(doc => reviews.push({ id: doc.id, ...doc.data() }));
+    res.json(reviews);
+  } catch (error) {
+    try {
+      const snapshot = await db.collection('product_reviews').get();
+      const reviews = [];
+      snapshot.forEach(doc => reviews.push({ id: doc.id, ...doc.data() }));
+      res.json(reviews.slice(0, 20));
+    } catch(err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+});
+
+router.delete('/admin/reviews/:id', verifyAdmin, async (req, res) => {
+  try {
+    await db.collection('product_reviews').doc(req.params.id).delete();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- BLOGS & SEO ---
+router.get('/blogs', async (req, res) => {
+  try {
+    const snapshot = await db.collection('blogs').orderBy('createdAt', 'desc').get();
+    const blogs = [];
+    snapshot.forEach(doc => blogs.push({ id: doc.id, ...doc.data() }));
+    res.json(blogs);
+  } catch (error) {
+    try {
+      const snapshot = await db.collection('blogs').get();
+      const blogs = [];
+      snapshot.forEach(doc => blogs.push({ id: doc.id, ...doc.data() }));
+      res.json(blogs);
+    } catch(err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+});
+
+router.get('/blogs/:slug', async (req, res) => {
+  try {
+    const snapshot = await db.collection('blogs').where('slug', '==', req.params.slug).get();
+    if (snapshot.empty) return res.status(404).json({ error: 'Blog not found' });
+    res.json({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/admin/blogs', verifyAdmin, async (req, res) => {
+  try {
+    const { title, slug, content, excerpt, metaDescription, keywords, imageUrl } = req.body;
+    const blogData = {
+      title,
+      slug,
+      content,
+      excerpt,
+      metaDescription,
+      keywords,
+      imageUrl,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+    const docRef = await db.collection('blogs').add(blogData);
+    res.json({ success: true, blog: { id: docRef.id, ...blogData } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/admin/blogs/:id', verifyAdmin, async (req, res) => {
+  try {
+    await db.collection('blogs').doc(req.params.id).delete();
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -373,7 +712,7 @@ router.post('/customers/verify-otp', async (req, res) => {
       const docRef = await db.collection('customers').add(newCustomer);
       customerData = { id: docRef.id, ...newCustomer };
     } else {
-      snapshot.forEach(doc => { customerData = { id: docRef.id, ...doc.data() }; });
+      snapshot.forEach(doc => { customerData = { id: doc.id, ...doc.data() }; });
     }
     res.json({ success: true, customer: customerData });
   } catch (error) {
@@ -406,6 +745,50 @@ router.post('/customers/google-login', async (req, res) => {
   } catch (error) {
     console.error('Google Auth Error:', error);
     res.status(401).json({ error: 'Google authentication failed' });
+  }
+});
+
+// --- CUSTOMER PROFILE & WISHLIST ---
+router.post('/customers/:email/wishlist', async (req, res) => {
+  const { wishlist } = req.body;
+  const email = req.params.email.toLowerCase();
+  try {
+    const snapshot = await db.collection('customers').where('email', '==', email).get();
+    if (snapshot.empty) return res.status(404).json({ error: 'Customer not found' });
+    
+    const customerId = snapshot.docs[0].id;
+    await db.collection('customers').doc(customerId).update({ wishlist: wishlist || [] });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/customers/:email/wishlist', async (req, res) => {
+  const email = req.params.email.toLowerCase();
+  try {
+    const snapshot = await db.collection('customers').where('email', '==', email).get();
+    if (snapshot.empty) return res.status(404).json({ error: 'Customer not found' });
+    
+    const customerData = snapshot.docs[0].data();
+    res.json(customerData.wishlist || []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/customers/:email', async (req, res) => {
+  const email = req.params.email.toLowerCase();
+  const updateData = req.body;
+  try {
+    const snapshot = await db.collection('customers').where('email', '==', email).get();
+    if (snapshot.empty) return res.status(404).json({ error: 'Customer not found' });
+    
+    const customerId = snapshot.docs[0].id;
+    await db.collection('customers').doc(customerId).update(updateData);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -472,6 +855,102 @@ router.post('/payment/create', async (req, res) => {
 
 router.post('/payment/verify', (req, res) => {
   res.json({ success: true });
+});
+
+module.exports = router;
+
+// --- ABANDONED CART BACKGROUND JOB ---
+// Runs every 30 minutes to check for abandoned carts older than 2 hours
+async function processAbandonedCarts() {
+  console.log('[CRON] Checking for abandoned carts...');
+  try {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const snapshot = await db.collection('abandoned_carts')
+      .where('recoveryEmailSent', '==', false)
+      .get();
+      
+    if (snapshot.empty) return;
+    
+    snapshot.forEach(async (doc) => {
+      const cart = doc.data();
+      // Check if lastUpdated is older than 2 hours
+      const lastUpdatedDate = cart.lastUpdated?.toDate ? cart.lastUpdated.toDate() : new Date();
+      if (lastUpdatedDate < twoHoursAgo) {
+        const email = cart.email;
+        const name = cart.name || 'Tea Lover';
+        const subject = `Did you forget something, ${name}? 🌿`;
+        
+        let itemsHtml = cart.items.map(i => `<li>${i.name} (${i.size || i.weight}) x${i.qty}</li>`).join('');
+        
+        const message = `
+          Hi ${name},<br><br>
+          We noticed you left some delicious tea in your cart at Farmers Farm.<br>
+          We've saved your selections so you can easily complete your purchase whenever you're ready.<br><br>
+          <b>Your Cart:</b><br>
+          <ul>${itemsHtml}</ul><br>
+          <b>Total:</b> ₹${cart.total.toLocaleString('en-IN')}<br><br>
+          <a href="http://localhost:3005/cart.html" style="background:#d4af37; color:#111; padding:10px 20px; text-decoration:none; font-weight:bold; border-radius:4px;">Complete Purchase</a><br><br>
+          Warmly,<br>
+          Farmers Farm Team
+        `;
+        
+        await sendOrderEmail(email, subject, message);
+        await db.collection('abandoned_carts').doc(email).update({ recoveryEmailSent: true });
+      }
+    });
+  } catch (err) {
+    console.error('Error running abandoned cart job:', err);
+  }
+}
+
+// Run every 30 minutes
+setInterval(processAbandonedCarts, 30 * 60 * 1000);
+
+// Manual trigger for Admin
+router.post('/admin/trigger-abandoned-carts', verifyAdmin, async (req, res) => {
+  try {
+    await processAbandonedCarts();
+    res.json({ success: true, message: 'Abandoned cart job triggered.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- NEWSLETTER SUBSCRIPTION ---
+router.post('/subscribe', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+  try {
+    const snapshot = await db.collection('subscribers').where('email', '==', email.toLowerCase()).get();
+    if (!snapshot.empty) {
+      return res.json({ success: true, message: 'Already subscribed' });
+    }
+    await db.collection('subscribers').add({
+      email: email.toLowerCase(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/admin/subscribers', verifyAdmin, async (req, res) => {
+  try {
+    const snapshot = await db.collection('subscribers').orderBy('createdAt', 'desc').get();
+    const subs = [];
+    snapshot.forEach(doc => subs.push({ id: doc.id, ...doc.data() }));
+    res.json(subs);
+  } catch (err) {
+    try {
+      const snapshot = await db.collection('subscribers').get();
+      const subs = [];
+      snapshot.forEach(doc => subs.push({ id: doc.id, ...doc.data() }));
+      res.json(subs);
+    } catch (fallbackErr) {
+      res.status(500).json({ error: fallbackErr.message });
+    }
+  }
 });
 
 module.exports = router;
