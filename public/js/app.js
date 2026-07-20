@@ -466,7 +466,14 @@ async function applyPromo() {
 }
 
 function openCartDrawer() {
-  window.location.href = '/cart.html';
+  const drawer = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('cartOverlay');
+  if (drawer && overlay) {
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+  } else {
+    window.location.href = '/cart.html';
+  }
 }
 function closeCartDrawer() {
   document.getElementById('cartOverlay')?.classList.remove('open');
@@ -480,8 +487,8 @@ function checkout() {
   const customer = getLoggedInCustomer();
   if (!customer) {
     closeCartDrawer();
-    showToast('ΓÜá∩╕Å Please login first to place an order.');
-    setTimeout(() => openAuthModal(), 500);
+    showToast('⚠️ Please login first to place an order.');
+    setTimeout(() => { openAuthModal(); }, 500);
     return;
   }
 
@@ -866,6 +873,14 @@ function initCustomerAuth() {
   // Verify OTP (Login form submit)
   document.getElementById('loginFormContainer')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    const step1 = document.getElementById('otpStep1');
+    if (step1 && step1.style.display !== 'none') {
+      // We are still on Step 1, user pressed Enter on email field. Trigger Send OTP.
+      document.getElementById('sendOtpBtn')?.click();
+      return;
+    }
+    
     const email = document.getElementById('clEmail').value.trim().toLowerCase();
     const otp = document.getElementById('clOtp').value.trim();
     
@@ -935,23 +950,27 @@ function initCustomerAuth() {
     }
   });
 
-  // User icon click
-  document.getElementById('navUserBtn')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleUserDropdown();
-  });
+
 
   // Close dropdown on outside click
   document.addEventListener('click', () => {
-    document.getElementById('userDropdown')?.classList.remove('show');
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown) {
+      dropdown.classList.remove('show');
+      dropdown.style.position = '';
+      dropdown.style.top = '';
+      dropdown.style.right = '';
+      dropdown.style.left = '';
+    }
   });
 
   // Logout
   document.getElementById('logoutBtn')?.addEventListener('click', () => {
     logoutCustomer();
     updateAuthUI();
-    document.getElementById('userDropdown')?.classList.remove('show');
-    showToast('≡ƒæï Logged out successfully.');
+    const dd = document.getElementById('userDropdown');
+    if (dd) { dd.classList.remove('show'); dd.style.position = ''; dd.style.top = ''; dd.style.right = ''; dd.style.left = ''; }
+    showToast('👋 Logged out successfully.');
   });
 
   // Auth modal close
@@ -962,11 +981,7 @@ function initCustomerAuth() {
 }
 
 function openAuthModal() {
-  document.getElementById('authOverlay')?.classList.add('open');
-  // Reset forms
-  document.getElementById('customerLoginForm')?.reset();
-  document.getElementById('customerSignupForm')?.reset();
-  document.getElementById('authError')?.classList.remove('show');
+  window.location.href = '/login.html';
 }
 function closeAuthModal() {
   document.getElementById('authOverlay')?.classList.remove('open');
@@ -1000,8 +1015,31 @@ function showAuthError(msg) {
 }
 
 function toggleUserDropdown() {
+  console.log("toggleUserDropdown called!");
   const dropdown = document.getElementById('userDropdown');
-  dropdown?.classList.toggle('show');
+  const btn = document.getElementById('navUserBtn');
+  console.log("dropdown:", dropdown, "btn:", btn);
+  if (!dropdown || !btn) return;
+
+
+  const isOpen = dropdown.classList.contains('show');
+
+  if (isOpen) {
+    dropdown.classList.remove('show');
+    dropdown.style.position = '';
+    dropdown.style.top = '';
+    dropdown.style.right = '';
+    dropdown.style.left = '';
+  } else {
+    // Position based on button's screen coordinates (fixed)
+    const rect = btn.getBoundingClientRect();
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = (rect.bottom + 8) + 'px';
+    dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+    dropdown.style.left = 'auto';
+    dropdown.style.zIndex = '2147483647'; // Maximum possible z-index
+    dropdown.classList.add('show');
+  }
 }
 
 function updateAuthUI() {
@@ -1012,7 +1050,8 @@ function updateAuthUI() {
 
   if (customer) {
     if (navUserIcon) {
-      navUserIcon.textContent = customer.name.charAt(0).toUpperCase();
+      const initial = (customer.name || customer.email || 'U').charAt(0).toUpperCase();
+      navUserIcon.textContent = initial;
       navUserIcon.style.background = 'linear-gradient(135deg, var(--green-mid), var(--gold))';
       navUserIcon.style.color = '#fff';
       navUserIcon.style.fontSize = '14px';
@@ -1021,12 +1060,12 @@ function updateAuthUI() {
     if (loggedInView && loggedOutView) {
       loggedInView.style.display = 'block';
       loggedOutView.style.display = 'none';
-      document.getElementById('dropdownName').textContent = customer.name;
-      document.getElementById('dropdownEmail').textContent = customer.email;
+      document.getElementById('dropdownName').textContent = customer.name || 'User';
+      document.getElementById('dropdownEmail').textContent = customer.email || '';
     }
   } else {
     if (navUserIcon) {
-      navUserIcon.textContent = '≡ƒæñ';
+      navUserIcon.textContent = '👤';
       navUserIcon.style.background = 'none';
       navUserIcon.style.color = 'var(--green-deep)';
       navUserIcon.style.fontSize = '20px';
@@ -1131,6 +1170,9 @@ function initCursorSparkle() {
     sparkle.style.top = e.clientY + 'px';
     document.body.appendChild(sparkle);
     setTimeout(() => sparkle.remove(), 600);
+  });
+}
+
 // ΓöÇΓöÇ TESTIMONIAL AUTO-SCROLL ΓöÇΓöÇ
 function initTestimonialScroll() {
   const track = document.getElementById('testimonialTrack');
@@ -1322,9 +1364,9 @@ async function fetchAndRenderMyOrders() {
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; gap: 10px;">
               ${o.status === 'Delivered' ? `
-                ${o.review ? `<span style="font-size: 12px; color: var(--gold);">Γ¡É Reviewed (${o.review.rating}/5)</span>` : `<button onclick="openReviewModal('${o.id}')" style="background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Γ¡É Review</button>`}`
-                ${o.complaint ? `<span style="font-size: 12px; color: #e74c3c;">ΓÜá∩╕Å Complaint Filed</span>` : `<button onclick="openComplaintModal('${o.id}')" style="background: none; border: 1px solid #e74c3c; color: #e74c3c; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">ΓÜá∩╕Å Complain</button>`}`
-              : `<span style="font-size: 12px; color: var(--mist);">Options available after delivery</span>`}
+                ${o.review ? `<span style="font-size: 12px; color: var(--gold);">Γ¡É Reviewed (${o.review.rating}/5)</span>` : `<button onclick="openReviewModal('${o.id}')" style="background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Γ¡É Review</button>`}
+                ${o.complaint ? `<span style="font-size: 12px; color: #e74c3c;">ΓÜá∩╕Å Complaint Filed</span>` : `<button onclick="openComplaintModal('${o.id}')" style="background: none; border: 1px solid #e74c3c; color: #e74c3c; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">ΓÜá∩╕Å Complain</button>`}
+              ` : `<span style="font-size: 12px; color: var(--mist);">Options available after delivery</span>`}
             </div>
             <div style="text-align: right; font-weight: bold; color: var(--gold);">
               Total: Γé╣${o.total.toLocaleString('en-IN')}
@@ -1434,6 +1476,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- SERVICE WORKER REGISTRATION (PWA) ---
+// DISABLED to prevent aggressive caching during development/updates
+/*
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
@@ -1444,6 +1488,7 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+*/
 
 // --- NEWSLETTER SUBSCRIPTION ---
 window.handleSubscribe = async function(e) {

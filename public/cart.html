@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Your Cart – Farmers Farm</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=5">
+<link rel="stylesheet" href="css/style.css?v=10">
 <!-- Google Identity Services for Google Login -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -22,11 +22,11 @@
     <li><a href="/">Home</a></li>
   </ul>
   <div class="nav-right">
-    <div class="nav-user" id="navUserBtn" style="position:relative; cursor:pointer;" title="Account">
+    <div class="nav-user" id="navUserBtn" style="position:relative; cursor:pointer;" title="Account" onclick="event.stopPropagation(); toggleUserDropdown();">
       <div id="navUserIcon" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; font-size:20px; color:var(--mist);">👤</div>
-      <div class="user-dropdown" id="userDropdown">
+      <div class="user-dropdown" id="userDropdown" onclick="event.stopPropagation();">
         <div id="dropdownLoggedOutView">
-          <button class="user-dropdown-item" onclick="openAuthModal(); document.getElementById('userDropdown').classList.remove('show');">🔐 Login / Sign Up</button>
+          <button class="user-dropdown-item" onclick="window.location.href='/login.html';">🔐 Login / Sign Up</button>
         </div>
         <div id="dropdownLoggedInView" style="display: none;">
           <div class="user-dropdown-name" id="dropdownName"></div>
@@ -56,7 +56,7 @@
       <div class="promo-section" style="margin-bottom: 24px; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 24px; max-width: 300px;">
         <div style="display:flex; gap:8px;">
           <input type="text" id="promoInputCart" placeholder="Promo code" style="flex:1; padding:10px; border-radius:6px; border:1px solid rgba(0,0,0,0.1); background:#fff; text-transform:uppercase;">
-          <button id="applyPromoBtnCart" style="padding:0 16px; border-radius:6px; border:none; background:var(--gold); color:#111; font-weight:600; cursor:pointer;" onclick="document.getElementById('promoInput').value = document.getElementById('promoInputCart').value; document.getElementById('applyPromoBtn').click();">Apply</button>
+          <button id="applyPromoBtnCart" style="padding:0 16px; border-radius:6px; border:none; background:var(--gold); color:#111; font-weight:600; cursor:pointer;">Apply</button>
         </div>
         <div id="promoMessageCart" style="font-size:12px; margin-top:6px; min-height:15px;"></div>
       </div>
@@ -82,13 +82,57 @@
 </footer>
 
 <!-- Toast & Modals from app.js will append to body -->
-<!-- Auth Modal Structure (hidden by default) -->
-<div class="modal-overlay" id="authOverlay">
-  <div class="auth-modal">
-    <div class="auth-close" id="authClose">✕</div>
-    <h2>Welcome to <span>Farmers Farm</span></h2>
-    <p>Please login to continue with your purchase.</p>
-    <div id="googleAuthBtn" style="display:flex; justify-content:center; margin-top:20px;"></div>
+<!-- CUSTOMER AUTH MODAL (Login / Signup) -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-modal" style="position:relative;">
+    <button class="auth-modal-close" id="authModalClose">✕</button>
+    <div class="auth-logo">FARMERS FARM</div>
+    <div class="auth-subtitle">Customer Portal</div>
+    <div class="auth-divider"></div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-form="loginFormContainer">Login</button>
+      <button class="auth-tab" data-form="signupFormContainer">Sign Up</button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <!-- LOGIN -->
+    <form class="auth-form active" id="loginFormContainer">
+      <div id="otpStep1">
+        <div class="auth-field"><label>Email</label><input type="email" id="clEmail" placeholder="your@email.com" required></div>
+        <button type="button" class="auth-btn" id="sendOtpBtn">Send OTP →</button>
+      </div>
+      <div id="otpStep2" style="display:none;">
+        <div class="auth-field"><label>Enter OTP</label><input type="text" id="clOtp" placeholder="6-digit code"></div>
+        <button type="submit" class="auth-btn" id="customerLoginForm">Verify OTP & Login</button>
+      </div>
+      
+      <div style="text-align: center; margin: 15px 0; color: var(--mist);">OR</div>
+      
+      <!-- Google Sign In Button -->
+      <div id="g_id_onload"
+           data-client_id="YOUR_GOOGLE_CLIENT_ID_HERE"
+           data-context="use"
+           data-ux_mode="popup"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="outline"
+           data-text="continue_with"
+           data-size="large"
+           data-logo_alignment="center"
+           style="display: flex; justify-content: center; margin-bottom: 10px;">
+      </div>
+    </form>
+    <!-- SIGNUP -->
+    <form class="auth-form" id="signupFormContainer">
+      <div class="auth-field"><label>Full Name</label><input type="text" id="csName" placeholder="Your full name" required></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="csEmail" placeholder="your@email.com" required></div>
+      <div class="auth-field"><label>Phone</label><input type="tel" id="csPhone" placeholder="+91 98765 43210" required></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="csPass" placeholder="Create password" required></div>
+      <button type="submit" class="auth-btn" id="customerSignupForm">Create Account →</button>
+    </form>
   </div>
 </div>
 
@@ -157,11 +201,107 @@
   </div>
 </div>
 
+<!-- MY ORDERS MODAL -->
+<div class="auth-overlay" id="accountOverlay" onclick="if(event.target===this)closeAccountModal()">
+  <div class="auth-modal" style="max-width: 700px; width: 95%;">
+    <div class="auth-header" style="justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+      <h2 style="font-family: 'Playfair Display', serif; color: var(--gold); margin: 0;">My Account</h2>
+      <button onclick="closeAccountModal()" style="background: none; border: none; color: var(--white); font-size: 24px; cursor: pointer;">✕</button>
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+      <button class="account-tab-btn active" onclick="switchAccountTab('orders')" style="background: transparent; color: var(--gold); border: none; font-size: 14px; font-weight: 600; cursor: pointer;">My Orders</button>
+      <button class="account-tab-btn" onclick="switchAccountTab('wishlist')" style="background: transparent; color: var(--mist); border: none; font-size: 14px; font-weight: 500; cursor: pointer;">Wishlist</button>
+      <button class="account-tab-btn" onclick="switchAccountTab('profile')" style="background: transparent; color: var(--mist); border: none; font-size: 14px; font-weight: 500; cursor: pointer;">Profile</button>
+    </div>
+
+    <!-- ORDERS TAB -->
+    <div id="accountTab-orders" class="account-tab-content active" style="max-height: 400px; overflow-y: auto;">
+      <div id="myOrdersList"></div>
+    </div>
+
+    <!-- WISHLIST TAB -->
+    <div id="accountTab-wishlist" class="account-tab-content" style="display: none; max-height: 400px; overflow-y: auto;">
+      <div id="myWishlistGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;"></div>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div id="accountTab-profile" class="account-tab-content" style="display: none; max-height: 400px; overflow-y: auto;">
+      <form id="profileForm" onsubmit="saveProfile(event)">
+        <div class="auth-field">
+          <label>Full Name</label>
+          <input type="text" id="profileName" required>
+        </div>
+        <div class="auth-field">
+          <label>Default Delivery Address</label>
+          <textarea id="profileAddress" style="resize:vertical; min-height:80px;"></textarea>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <div class="auth-field" style="flex: 1; margin-bottom: 0;">
+            <label>City</label>
+            <input type="text" id="profileCity">
+          </div>
+          <div class="auth-field" style="flex: 1; margin-bottom: 0;">
+            <label>PIN Code</label>
+            <input type="text" id="profilePin" maxlength="6" pattern="\d{6}">
+          </div>
+        </div>
+        <button type="submit" class="auth-btn">Save Profile</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER REVIEW MODAL -->
+<div class="checkout-overlay" id="reviewOverlay" onclick="if(event.target===this)closeReviewModal()">
+  <div class="checkout-modal" style="text-align:left;">
+    <button class="auth-modal-close" onclick="closeReviewModal()">✕</button>
+    <div class="auth-title" style="margin-bottom:8px;">Leave a Review</div>
+    <div class="auth-subtitle" style="margin-bottom:24px;" id="reviewOrderTitle"></div>
+    <form id="reviewForm" class="auth-form active">
+      <input type="hidden" id="reviewOrderId">
+      <div class="auth-field">
+        <label>Rating (1-5)</label>
+        <select id="reviewRating" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-light); background: rgba(255,255,255,0.05); color: var(--white);">
+          <option value="5">5 - Excellent</option>
+          <option value="4">4 - Very Good</option>
+          <option value="3">3 - Good</option>
+          <option value="2">2 - Fair</option>
+          <option value="1">1 - Poor</option>
+        </select>
+      </div>
+      <div class="auth-field">
+        <label>Comments</label>
+        <textarea id="reviewComment" placeholder="Tell us what you think..." required style="resize:vertical; min-height:80px; width: 100%;"></textarea>
+      </div>
+      <button type="submit" class="auth-btn">Submit Review</button>
+    </form>
+  </div>
+</div>
+
+<!-- ORDER COMPLAINT MODAL -->
+<div class="checkout-overlay" id="complaintOverlay" onclick="if(event.target===this)closeComplaintModal()">
+  <div class="checkout-modal" style="text-align:left;">
+    <button class="auth-modal-close" onclick="closeComplaintModal()">✕</button>
+    <div class="auth-title" style="margin-bottom:8px; color: #e74c3c;">File a Complaint</div>
+    <div class="auth-subtitle" style="margin-bottom:24px;" id="complaintOrderTitle"></div>
+    <form id="complaintForm" class="auth-form active">
+      <input type="hidden" id="complaintOrderId">
+      <div class="auth-field">
+        <label>What went wrong?</label>
+        <textarea id="complaintText" placeholder="Please describe the issue..." required style="resize:vertical; min-height:80px; width: 100%;"></textarea>
+      </div>
+      <button type="submit" class="auth-btn" style="background: #e74c3c;">Submit Complaint</button>
+    </form>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script src="js/app.js?v=3"></script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(let r of rs)r.unregister();});}if('caches' in window){caches.keys().then(function(ns){for(let n of ns)caches.delete(n);});}</script>
+<script src="js/app.js?v=10"></script>
 <script>
   // Ensure the cart UI is updated correctly on load
   document.addEventListener('DOMContentLoaded', () => {

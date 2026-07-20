@@ -5,5 +5,8 @@
     "start": "cd backend && npm start",
     "dev": "cd backend && node server.js",
     "install-deps": "cd backend && npm install"
+  },
+  "dependencies": {
+    "acorn": "^8.17.0"
   }
 }

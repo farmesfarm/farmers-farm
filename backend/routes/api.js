@@ -42,7 +42,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Google Auth Setup
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID_HERE';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // --- EMAIL NOTIFICATION SERVICE ---
@@ -497,8 +497,14 @@ router.post('/products/:id/reviews', reviewUpload.single('photo'), async (req, r
     };
 
     if (req.file) {
-      // req.file.filename will be saved in public/uploads/reviews/
-      reviewData.photoUrl = `/uploads/reviews/${req.file.filename}`;
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, { folder: 'farmers-farm/reviews' });
+        reviewData.photoUrl = result.secure_url;
+        fs.unlinkSync(req.file.path); // delete local temp file
+      } catch (err) {
+        console.error('Cloudinary Review Upload Error:', err);
+        return res.status(500).json({ error: 'Image upload to Cloudinary failed.' });
+      }
     }
 
     const docRef = await db.collection('product_reviews').add(reviewData);
@@ -830,31 +836,54 @@ router.post('/feedbacks', async (req, res) => {
 router.post('/payment/create', async (req, res) => {
   const { amount } = req.body;
 
+  // If no Razorpay keys, return COD mock
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    return res.json({
+      id: 'cod_' + Date.now(),
+      amount: amount * 100,
+      currency: 'INR',
+      cod: true
+    });
+  }
+
   try {
     const options = {
-      amount: amount * 100, // Amount in paise
-      currency: "INR",
-      receipt: "receipt_order_" + Date.now(),
+      amount: Math.round(amount * 100), // Amount in paise
+      currency: 'INR',
+      receipt: 'receipt_' + Date.now(),
     };
-
-    // In a real scenario with valid keys, this creates an order on Razorpay
-    // const order = await razorpay.orders.create(options);
-
-    // For now, we mock the order creation if using dummy keys
-    const order = {
-      id: "order_" + Date.now(),
-      amount: options.amount,
-      currency: "INR"
-    };
-
+    const order = await razorpay.orders.create(options);
     res.json(order);
   } catch (error) {
+    console.error('Razorpay Order Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 router.post('/payment/verify', (req, res) => {
-  res.json({ success: true });
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+  // If no keys configured, just pass through
+  if (!process.env.RAZORPAY_KEY_SECRET) {
+    return res.json({ success: true });
+  }
+
+  try {
+    const crypto = require('crypto');
+    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (expectedSignature === razorpay_signature) {
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ success: false, error: 'Invalid payment signature' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = router;
@@ -871,33 +900,37 @@ async function processAbandonedCarts() {
       
     if (snapshot.empty) return;
     
-    snapshot.forEach(async (doc) => {
-      const cart = doc.data();
-      // Check if lastUpdated is older than 2 hours
-      const lastUpdatedDate = cart.lastUpdated?.toDate ? cart.lastUpdated.toDate() : new Date();
-      if (lastUpdatedDate < twoHoursAgo) {
-        const email = cart.email;
-        const name = cart.name || 'Tea Lover';
-        const subject = `Did you forget something, ${name}? 🌿`;
-        
-        let itemsHtml = cart.items.map(i => `<li>${i.name} (${i.size || i.weight}) x${i.qty}</li>`).join('');
-        
-        const message = `
-          Hi ${name},<br><br>
-          We noticed you left some delicious tea in your cart at Farmers Farm.<br>
-          We've saved your selections so you can easily complete your purchase whenever you're ready.<br><br>
-          <b>Your Cart:</b><br>
-          <ul>${itemsHtml}</ul><br>
-          <b>Total:</b> ₹${cart.total.toLocaleString('en-IN')}<br><br>
-          <a href="http://localhost:3005/cart.html" style="background:#d4af37; color:#111; padding:10px 20px; text-decoration:none; font-weight:bold; border-radius:4px;">Complete Purchase</a><br><br>
-          Warmly,<br>
-          Farmers Farm Team
-        `;
-        
-        await sendOrderEmail(email, subject, message);
-        await db.collection('abandoned_carts').doc(email).update({ recoveryEmailSent: true });
+    for (const doc of snapshot.docs) {
+      try {
+        const cart = doc.data();
+        // Check if lastUpdated is older than 2 hours
+        const lastUpdatedDate = cart.lastUpdated?.toDate ? cart.lastUpdated.toDate() : new Date();
+        if (lastUpdatedDate < twoHoursAgo) {
+          const email = cart.email;
+          const name = cart.name || 'Tea Lover';
+          const subject = `Did you forget something, ${name}? 🌿`;
+          
+          let itemsHtml = cart.items.map(i => `<li>${i.name} (${i.size || i.weight}) x${i.qty}</li>`).join('');
+          
+          const message = `
+            Hi ${name},<br><br>
+            We noticed you left some delicious tea in your cart at Farmers Farm.<br>
+            We've saved your selections so you can easily complete your purchase whenever you're ready.<br><br>
+            <b>Your Cart:</b><br>
+            <ul>${itemsHtml}</ul><br>
+            <b>Total:</b> ₹${cart.total.toLocaleString('en-IN')}<br><br>
+            <a href="${process.env.APP_URL || 'https://farmersfarm.in'}/cart.html" style="background:#d4af37; color:#111; padding:10px 20px; text-decoration:none; font-weight:bold; border-radius:4px;">Complete Purchase</a><br><br>
+            Warmly,<br>
+            Farmers Farm Team
+          `;
+          
+          await sendOrderEmail(email, subject, message);
+          await doc.ref.update({ recoveryEmailSent: true });
+        }
+      } catch (innerErr) {
+        console.error(`Error processing abandoned cart for doc ${doc.id}:`, innerErr);
       }
-    });
+    }
   } catch (err) {
     console.error('Error running abandoned cart job:', err);
   }

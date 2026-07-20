@@ -15,7 +15,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍵</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=5">
+<link rel="stylesheet" href="css/style.css?v=10">
 <!-- Google Identity Services for Google Login -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -63,11 +63,11 @@
   </ul>
   <div class="nav-right">
     <button id="themeToggleBtn" title="Toggle Theme" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--green-deep); margin-right:12px;">🌓</button>
-    <div class="nav-user" id="navUserBtn" style="position:relative; cursor:pointer;" title="Account">
+    <div class="nav-user" id="navUserBtn" style="position:relative; cursor:pointer;" title="Account" onclick="event.stopPropagation(); toggleUserDropdown();">
       <div id="navUserIcon" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; font-size:20px; color:var(--green-deep);">👤</div>
-      <div class="user-dropdown" id="userDropdown">
+      <div class="user-dropdown" id="userDropdown" onclick="event.stopPropagation();">
         <div id="dropdownLoggedOutView">
-          <button class="user-dropdown-item" onclick="openAuthModal(); document.getElementById('userDropdown').classList.remove('show');">🔐 Login / Sign Up</button>
+          <button class="user-dropdown-item" onclick="window.location.href='/login.html';">🔐 Login / Sign Up</button>
         </div>
         <div id="dropdownLoggedInView" style="display: none;">
           <div class="user-dropdown-name" id="dropdownName"></div>
@@ -615,6 +615,7 @@
     }
   });
 </script>
-<script src="js/app.js"></script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){for(let r of rs)r.unregister();});}if('caches' in window){caches.keys().then(function(ns){for(let n of ns)caches.delete(n);});}</script>
+<script src="js/app.js?v=10"></script>
 </body>
 </html>

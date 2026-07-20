@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1B3A2D">
+<link rel="manifest" href="/manifest.json">
+<title>Farmers Farm – 7 TEA AM | Premium Ayurvedic Teas</title>
+<meta name="description" content="Farmers Farm presents 7 TEA AM – a premium herbal morning blend crafted from 7 hand-picked natural ingredients. Farm to cup, 100% natural tea. Order now for pan-India delivery.">
+<meta name="keywords" content="Farmers Farm, 7 TEA AM, herbal tea, morning tea, green tea, natural tea, Indian tea, organic tea">
+<meta name="author" content="Farmers Farm Pvt. Ltd.">
+<meta property="og:title" content="Farmers Farm – 7 TEA AM">
+<meta property="og:description" content="A morning blend crafted from the finest hand-picked leaves and ancient herbs. 100% Natural.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍵</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=10">
+<!-- Google Identity Services for Google Login -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+<!-- PRELOADER -->
+  <div class="preloader" id="preloader">
+    <div class="preloader-bg-orbs">
+      <div class="preloader-orb preloader-orb-1"></div>
+      <div class="preloader-orb preloader-orb-2"></div>
+      <div class="preloader-orb preloader-orb-3"></div>
+    </div>
+    
+    <div class="preloader-particles" id="preloaderParticles"></div>
+    
+    <div class="preloader-content">
+      <div class="preloader-logo">FARMERS FARM</div>
+      <div class="preloader-sub">Brewing Excellence Since 2020</div>
+      
+      <!-- Progress Bar -->
+      <div class="preloader-bar">
+        <div class="preloader-bar-inner"></div>
+        <div class="preloader-bar-glow"></div>
+      </div>
+      
+      <div class="preloader-tip">☕ Farm to Cup — 100% Natural</div>
+    </div>
+  </div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <span>FARMERS FARM</span>
+    <span>Est. 2020 · Pure Harvest</span>
+  </div>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#ingredients">Ingredients</a></li>
+    <li><a href="#shop">Shop</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+    <li><a href="/blogs">Blog</a></li>
+    <li><a href="#location">Find Us</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <button id="themeToggleBtn" title="Toggle Theme" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--green-deep); margin-right:12px;">🌓</button>
+    <div class="nav-user" id="navUserBtn" style="position:relative; cursor:pointer;" title="Account" onclick="event.stopPropagation(); toggleUserDropdown();">
+      <div id="navUserIcon" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; font-size:20px; color:var(--green-deep);">👤</div>
+      <div class="user-dropdown" id="userDropdown" onclick="event.stopPropagation();">
+        <div id="dropdownLoggedOutView">
+          <button class="user-dropdown-item" onclick="openAuthModal(); document.getElementById('userDropdown').classList.remove('show');">🔐 Login / Sign Up</button>
+        </div>
+        <div id="dropdownLoggedInView" style="display: none;">
+          <div class="user-dropdown-name" id="dropdownName"></div>
+          <div class="user-dropdown-email" id="dropdownEmail"></div>
+          <button class="user-dropdown-item" onclick="openAccountModal(); document.getElementById('userDropdown').classList.remove('show');">⚙️ My Account</button>
+          <button class="user-dropdown-item danger" id="logoutBtn">🚪 Logout</button>
+        </div>
+      </div>
+    </div>
+    <div class="nav-cart" id="cartIcon" title="View Cart">🛒<span class="cart-count" id="cartCount">0</span></div>
+    <button class="nav-cta" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Order Now</button>
+  </div>
+</nav>
+
+<style>
+  .login-page-container {
+    padding: 120px 20px 60px;
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+<div class="login-page-container">
+  <div class="auth-modal" style="position:relative; transform: none; top: 0; left: 0; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 450px;">
+    <div class="auth-logo">FARMERS FARM</div>
+    <div class="auth-subtitle">Customer Portal</div>
+    <div class="auth-divider"></div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-form="loginFormContainer">Login</button>
+      <button class="auth-tab" data-form="signupFormContainer">Sign Up</button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <!-- LOGIN -->
+    <form class="auth-form active" id="loginFormContainer">
+      <div id="otpStep1">
+        <div class="auth-field"><label>Email</label><input type="email" id="clEmail" placeholder="your@email.com" required></div>
+        <button type="button" class="auth-btn" id="sendOtpBtn">Send OTP &rarr;</button>
+      </div>
+      <div id="otpStep2" style="display:none;">
+        <div class="auth-field"><label>Enter OTP</label><input type="text" id="clOtp" placeholder="6-digit code"></div>
+        <button type="submit" class="auth-btn" id="customerLoginForm">Verify OTP &amp; Login</button>
+      </div>
+      
+      <div style="text-align: center; margin: 15px 0; color: var(--mist);">OR</div>
+      
+      <!-- Google Sign In Button -->
+      <div id="g_id_onload"
+           data-client_id="YOUR_GOOGLE_CLIENT_ID_HERE"
+           data-context="use"
+           data-ux_mode="popup"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="outline"
+           data-text="continue_with"
+           data-size="large"
+           data-logo_alignment="center"
+           style="display: flex; justify-content: center; margin-bottom: 10px;">
+      </div>
+    </form>
+    <!-- SIGNUP -->
+    <form class="auth-form" id="signupFormContainer">
+      <div class="auth-field"><label>Full Name</label><input type="text" id="csName" placeholder="Your full name" required></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="csEmail" placeholder="your@email.com" required></div>
+      <div class="auth-field"><label>Phone</label><input type="tel" id="csPhone" placeholder="+91 98765 43210" required></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="csPass" placeholder="Create password" required></div>
+      <button type="submit" class="auth-btn" id="customerSignupForm">Create Account &rarr;</button>
+    </form>
+  </div>
+</div>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      for(let registration of registrations) { registration.unregister(); }
+    });
+  }
+  if ('caches' in window) {
+    caches.keys().then(function(names) {
+      for (let name of names) caches.delete(name);
+    });
+  }
+</script>
+<script src="js/app.js?v=10"></script>
+<script>
+  // Wait a bit and override the close modal to go home
+  setTimeout(() => {
+    window.closeAuthModal = function() { window.location.href = '/'; };
+    const oldLogin = window.loginCustomer;
+    window.loginCustomer = function(c) {
+      oldLogin(c);
+      setTimeout(() => window.location.href = '/', 1000);
+    };
+  }, 1000);
+</script>
+</body>
+</html>
