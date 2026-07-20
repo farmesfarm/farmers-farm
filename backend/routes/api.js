@@ -8,26 +8,18 @@ const multer = require('multer');
 const { OAuth2Client } = require('google-auth-library');
 const cloudinary = require('cloudinary').v2;
 
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  if (process.env.NODE_ENV === 'production') throw new Error('Cloudinary environment variables are missing.');
+  console.warn('WARNING: Cloudinary environment variables are missing.');
+}
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'YOUR_CLOUD_NAME',
-  api_key: process.env.CLOUDINARY_API_KEY || 'YOUR_API_KEY',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'YOUR_API_SECRET'
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dummy',
+  api_key: process.env.CLOUDINARY_API_KEY || 'dummy',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'dummy'
 });
 
-// Multer Setup for Local Uploads (Reviews)
-const reviewUploadDir = path.join(__dirname, '../../public/uploads/reviews');
-if (!fs.existsSync(reviewUploadDir)) {
-  fs.mkdirSync(reviewUploadDir, { recursive: true });
-}
-const reviewStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, reviewUploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'review-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Multer Setup for In-Memory Uploads (Reviews)
+const reviewStorage = multer.memoryStorage();
 const reviewUpload = multer({ storage: reviewStorage });
 // OTP Storage (Email -> { otp, expiresAt })
 const otpStorage = new Map();
@@ -71,48 +63,33 @@ const sendOrderEmail = async (toEmail, subject, text) => {
 };
 
 // Initialize Firebase Admin
-const admin = require('firebase-admin');
-const { cert } = require('firebase-admin/app');
-
-let serviceAccount;
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-} else {
-  serviceAccount = require('../serviceAccountKey.json');
-}
-
-admin.initializeApp({
-  credential: cert(serviceAccount)
-});
-const db = admin.firestore();
+const { admin, db } = require('../firebase');
 
 // Setup Multer for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../../public/images/uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Replace spaces and special characters with underscore for safe URLs
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    cb(null, Date.now() + '-' + safeName);
-  }
-});
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Initialize Razorpay
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+  if (process.env.NODE_ENV === 'production') throw new Error('Razorpay keys are missing.');
+  console.warn('WARNING: Razorpay keys are missing.');
+}
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_dummy',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_secret',
+  key_id: process.env.RAZORPAY_KEY_ID || 'dummy',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy',
 });
+
+// Admin Token Setup
+if (!process.env.ADMIN_TOKEN_SECRET) {
+  if (process.env.NODE_ENV === 'production') throw new Error('ADMIN_TOKEN_SECRET is missing.');
+  console.warn('WARNING: ADMIN_TOKEN_SECRET is missing.');
+}
+const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || 'ff_super_secret_token_2026';
 
 // --- ADMIN LOGIN & MIDDLEWARE ---
 const verifyAdmin = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const expectedToken = process.env.ADMIN_TOKEN_SECRET || 'ff_super_secret_token_2026';
+  const expectedToken = ADMIN_TOKEN_SECRET;
   if (authHeader === `Bearer ${expectedToken}`) {
     next();
   } else {
@@ -134,7 +111,7 @@ router.post('/admin/login', (req, res) => {
   const match = ADMIN_CREDENTIALS.find(c => c.email && c.email === inputEmail && c.pass && c.pass === inputPass);
 
   if (match) {
-    const token = process.env.ADMIN_TOKEN_SECRET || 'ff_super_secret_token_2026';
+    const token = ADMIN_TOKEN_SECRET;
     res.json({ success: true, token });
   } else {
     res.status(401).json({ error: 'Access denied. Invalid email or password.' });
@@ -156,7 +133,7 @@ router.post('/admin/verify-otp', (req, res) => {
 
   if (storedData.otp === otp) {
     otpStorage.delete(email);
-    const token = process.env.ADMIN_TOKEN_SECRET || 'ff_super_secret_token_2026';
+    const token = ADMIN_TOKEN_SECRET;
     res.json({ success: true, token });
   } else {
     res.status(401).json({ error: 'Invalid OTP.' });
@@ -183,9 +160,14 @@ router.post('/products', verifyAdmin, upload.single('image'), async (req, res) =
   
   if (req.file) {
     try {
-      const result = await cloudinary.uploader.upload(req.file.path, { folder: 'farmers-farm' });
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream({ folder: 'farmers-farm' }, (error, result) => {
+          if (result) resolve(result);
+          else reject(error);
+        });
+        stream.end(req.file.buffer);
+      });
       image = result.secure_url;
-      fs.unlinkSync(req.file.path); // delete local temp file
     } catch (err) {
       console.error('Cloudinary Upload Error:', err);
       return res.status(500).json({ error: 'Image upload to Cloudinary failed.' });
@@ -221,9 +203,14 @@ router.put('/products/:id', verifyAdmin, upload.single('image'), async (req, res
 
   if (req.file) {
     try {
-      const result = await cloudinary.uploader.upload(req.file.path, { folder: 'farmers-farm' });
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream({ folder: 'farmers-farm' }, (error, result) => {
+          if (result) resolve(result);
+          else reject(error);
+        });
+        stream.end(req.file.buffer);
+      });
       updateData.image = result.secure_url;
-      fs.unlinkSync(req.file.path); // delete local temp file
     } catch (err) {
       console.error('Cloudinary Upload Error:', err);
       return res.status(500).json({ error: 'Image upload to Cloudinary failed.' });
@@ -498,9 +485,14 @@ router.post('/products/:id/reviews', reviewUpload.single('photo'), async (req, r
 
     if (req.file) {
       try {
-        const result = await cloudinary.uploader.upload(req.file.path, { folder: 'farmers-farm/reviews' });
+        const result = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream({ folder: 'farmers-farm/reviews' }, (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          });
+          stream.end(req.file.buffer);
+        });
         reviewData.photoUrl = result.secure_url;
-        fs.unlinkSync(req.file.path); // delete local temp file
       } catch (err) {
         console.error('Cloudinary Review Upload Error:', err);
         return res.status(500).json({ error: 'Image upload to Cloudinary failed.' });

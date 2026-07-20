@@ -3,17 +3,41 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 const fs = require('fs');
-
+const rateLimit = require('express-rate-limit');
+const { db } = require('./firebase');
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ── CORS – allow any origin dynamically
+// ── CORS Configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'https://farmersfarm.in',
+  'https://www.farmersfarm.in'
+];
+if (process.env.RAILWAY_STATIC_URL) allowedOrigins.push(`https://${process.env.RAILWAY_STATIC_URL}`);
+
 app.use(cors({
-  origin: true, // Automatically reflects the request origin
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('railway.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
+// ── Rate Limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // limit each IP to 200 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', apiLimiter);
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
@@ -33,11 +57,11 @@ app.get('/admin', (req, res) => {
 app.get('/blog/:slug', async (req, res) => {
   const { slug } = req.params;
   try {
-    const response = await fetch(`http://localhost:${PORT}/api/blogs/${slug}`);
-    if (!response.ok) {
+    const snapshot = await db.collection('blogs').where('slug', '==', slug).get();
+    if (snapshot.empty) {
       return res.status(404).send('Blog Post Not Found');
     }
-    const blog = await response.json();
+    const blog = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
     
     // Read the base blog.html template
     const templatePath = path.join(__dirname, '../public/blog.html');
